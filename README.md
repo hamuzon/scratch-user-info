@@ -1,2 +1,2 @@
 # scratch-user-info
-scratch-user-info NEXT.js用Code
+スクラッチのuserの作品の詳細が出てきます
