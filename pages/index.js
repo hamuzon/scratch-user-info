@@ -1,6 +1,7 @@
 // pages/index.js
 import { useState } from 'react';
 import Head from 'next/head';
+import { Analytics } from '@vercel/analytics/next';
 
 export default function Home() {
   const [username, setUsername] = useState('');
@@ -322,6 +323,7 @@ export default function Home() {
             ))}
         </div>
       </main>
+  <Analytics />
     </>
   );
 }
