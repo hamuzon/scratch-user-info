@@ -9,9 +9,6 @@ https://scratch-user-info.vercel.app/
 URL-2  
 https://scratch-project-innfo.netlify.app/  
 
-URL-3  
-https://scratch-innfo.hamuzon-jp.f5.si/  
-
-URL-4  
+URL-3
 https://scratch.hamusata.f5.si/  
 
