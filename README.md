@@ -6,6 +6,8 @@
 URL-1  
 https://scratch-user-info.vercel.app/  
 
+![Vercel Deploy](https://deploy-badge.vercel.app/vercel/scratch-user-info)
+
 URL-2  
 https://scratch-project-innfo.netlify.app/ 
 
