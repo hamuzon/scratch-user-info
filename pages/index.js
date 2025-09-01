@@ -50,7 +50,7 @@ export default function Home() {
     <>
       <Head>
         <title>Scratchユーザー情報表示</title>
-        <link rel="icon" href="/icon-light.png" />
+        <link rel="icon" href="/icon.png" />
       </Head>
 
       <style jsx global>{`
