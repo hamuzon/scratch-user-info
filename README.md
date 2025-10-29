@@ -1,7 +1,7 @@
 # scratch-user-info  
 
 スクラッチのuserの作品の詳細を出します  
-よくとまるかもしれません  
+使われずerrorになるときもあるかも
 
 URL-1  
 https://scratch-user-info.vercel.app/  
