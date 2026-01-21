@@ -51,7 +51,7 @@ export default function Home() {
       <Head>
         <title>Scratchユーザー情報表示</title>
         <link rel="icon" href="/icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
       <style jsx global>{`
@@ -64,7 +64,7 @@ export default function Home() {
           align-items: center;
           min-height: 100vh;
           color: #fff;
-          padding: 20px;
+          padding: 15px;
           box-sizing: border-box;
         }
       `}</style>
@@ -78,7 +78,8 @@ export default function Home() {
           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
           backdrop-filter: blur(10px);
           padding: 20px;
-          margin: auto;
+          margin: 20px auto;
+          box-sizing: border-box;
         }
 
         .title {
@@ -100,7 +101,7 @@ export default function Home() {
         input {
           flex: 1;
           min-width: 200px;
-          padding: 10px;
+          padding: 12px;
           font-size: 16px;
           color: #fff;
           border: 1px solid #00ffcc;
@@ -108,6 +109,7 @@ export default function Home() {
           background-color: transparent;
           outline: none;
           transition: all 0.3s;
+          box-sizing: border-box;
         }
 
         input:focus {
@@ -150,13 +152,14 @@ export default function Home() {
         }
 
         .project {
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid #00ffcc;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(0, 255, 204, 0.3);
           border-radius: 10px;
           padding: 15px;
           margin-bottom: 20px;
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
           word-wrap: break-word;
+          overflow: hidden;
         }
 
         .project-title a {
@@ -164,91 +167,70 @@ export default function Home() {
           font-weight: bold;
           color: #00ffcc;
           text-decoration: none;
-        }
-
-        .project-title a:hover {
-          text-decoration: underline;
+          display: block;
+          margin-bottom: 5px;
         }
 
         .project-image {
           width: 100%;
           height: auto;
-          border-radius: 10px;
-          border: 3px solid #00ffcc;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+          aspect-ratio: 4 / 3;
+          object-fit: cover;
+          border-radius: 8px;
+          border: 2px solid #00ffcc;
           margin-top: 10px;
-          cursor: pointer;
           display: block;
-          box-sizing: border-box;
         }
 
         .info {
-          font-size: 14px;
+          font-size: 13px;
           color: #e0e0e0;
           margin-top: 10px;
-        }
-
-        .info a {
-          color: #00ffcc;
-          text-decoration: underline;
+          line-height: 1.5;
         }
 
         .usage, .description {
           margin-top: 15px;
-          padding: 10px;
-          border-radius: 5px;
-          border: 1px solid #00ffcc;
-          background-color: rgba(255, 255, 255, 0.1);
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(0, 255, 204, 0.2);
+          background-color: rgba(255, 255, 255, 0.05);
           color: #fff;
-          font-size: 14px;
+          font-size: 13px;
         }
 
-        .buttons {
+        .action-buttons {
           display: flex;
           gap: 10px;
-          margin-top: 10px;
-          flex-wrap: wrap;
+          margin-top: 15px;
         }
 
-        .scratch-button, .turbowarp-button {
-          padding: 8px 16px;
-          font-size: 14px;
-          font-weight: bold;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.3s;
+        .action-buttons button {
           flex: 1;
           text-align: center;
-          min-width: 80px;
         }
 
         .scratch-button {
           background: linear-gradient(135deg, #00ffcc, #009999);
         }
 
-        .scratch-button:hover {
-          background: linear-gradient(135deg, #00ffff, #00ccaa);
-        }
-
         .turbowarp-button {
           background: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
-        .turbowarp-button:hover {
-          background: linear-gradient(135deg, #ffc107, #ff7043);
-        }
+        @media (max-width: 500px) {
+          .container {
+            padding: 15px;
+            margin: 10px auto;
+          }
 
-        @media (max-width: 480px) {
           .form {
             flex-direction: column;
             align-items: stretch;
           }
 
           .button-group {
-            display: flex;
-            gap: 10px;
+            width: 100%;
           }
 
           .button-group button {
@@ -258,10 +240,14 @@ export default function Home() {
           .title {
             font-size: 20px;
           }
+
+          .project-title a {
+            font-size: 16px;
+          }
         }
       `}</style>
 
-      <main className="container" role="main">
+      <main className="container">
         <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form
@@ -276,46 +262,32 @@ export default function Home() {
             placeholder="ユーザー名を入力"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            aria-label="ユーザー名入力"
             required
           />
 
           <div className="button-group">
-            <button type="submit" className="submit-button" aria-label="情報取得">
+            <button type="submit" className="submit-button">
               情報取得
             </button>
 
-            <button
-              type="button"
-              onClick={reset}
-              className="reset-button"
-              aria-label="リセット"
-            >
+            <button type="button" onClick={reset} className="reset-button">
               リセット
             </button>
           </div>
         </form>
 
         {error && (
-          <p style={{ color: '#ff4b5c', marginTop: 15, textAlign: 'center' }}>
+          <p style={{ color: '#ff4b5c', marginTop: 15, textAlign: 'center', fontSize: '14px' }}>
             {error}
           </p>
         )}
 
         {userInfo && (
-          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.3)', paddingBottom: '15px' }}>
-            <h2 style={{ fontSize: '18px', color: '#00ffcc', marginBottom: '10px' }}>
-              ユーザー情報
-            </h2>
-            
+          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
+            <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
+            <p className="info"><strong>ユーザー名:</strong> {userInfo.username}</p>
             <p className="info">
-              <strong>ユーザー名: </strong>
-              {userInfo.username}
-            </p>
-
-            <p className="info">
-              <strong>登録日: </strong>
-              {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
+              <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
             </p>
           </div>
         )}
@@ -324,60 +296,34 @@ export default function Home() {
           {projects.length > 0 &&
             projects.map((project) => (
               <div key={project.id} className="project">
-                <p className="project-title">
-                  <a
-                    href={`https://scratch.mit.edu/projects/${project.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                <div className="project-title">
+                  <a href={`https://scratch.mit.edu/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
                     {project.title}
                   </a>
-                </p>
+                </div>
 
-                <a
-                  href={`https://scratch.mit.edu/projects/${project.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  tabIndex={-1}
-                >
-                  <img
-                    src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
-                    alt={`${project.title} サムネイル`}
-                    className="project-image"
-                  />
-                </a>
+                <img
+                  src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
+                  alt={project.title}
+                  className="project-image"
+                />
 
                 <p className="info">
-                  <strong>ID:</strong>{' '}
-                  <a
-                    href={`https://scratch.mit.edu/projects/${project.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {project.id}
-                  </a>
+                  <strong>ID:</strong> {project.id}<br />
+                  <strong>共有:</strong> {project.published_date}<br />
+                  <strong>更新:</strong> {project.modified_date}
                 </p>
 
-                <p className="info">
-                  <strong>共有日:</strong> {project.published_date}
-                  <br />
-                  <strong>最終更新日:</strong> {project.modified_date}
-                </p>
-
-                <div className="buttons">
+                <div className="action-buttons">
                   <button
-                    onClick={() =>
-                      window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')
-                    }
+                    onClick={() => window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')}
                     className="scratch-button"
                   >
                     Scratch
                   </button>
 
                   <button
-                    onClick={() =>
-                      window.open(`https://turbowarp.org/${project.id}`, '_blank')
-                    }
+                    onClick={() => window.open(`https://turbowarp.org/${project.id}`, '_blank')}
                     className="turbowarp-button"
                   >
                     TurboWarp
@@ -387,18 +333,14 @@ export default function Home() {
                 {project.instructions && (
                   <div className="usage">
                     <strong>使い方:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>
-                      {project.instructions}
-                    </p>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{project.instructions}</p>
                   </div>
                 )}
 
                 {project.description && (
                   <div className="description">
                     <strong>メモとクレジット:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>
-                      {project.description}
-                    </p>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{project.description}</p>
                   </div>
                 )}
               </div>
