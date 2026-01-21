@@ -1,7 +1,6 @@
-// pages/index.js
 import { useState } from 'react';
 import Head from 'next/head';
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from '@vercelanalytics/next';
 
 export default function Home() {
   const [username, setUsername] = useState('');
@@ -25,6 +24,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
       });
+
       const data = await res.json();
 
       if (res.ok) {
@@ -61,7 +61,7 @@ export default function Home() {
           margin: 0;
           display: flex;
           justify-content: center;
-          align-items: flex-start;
+          align-items: center;
           min-height: 100vh;
           color: #fff;
           padding: 20px;
@@ -72,178 +72,196 @@ export default function Home() {
       <style jsx>{`
         .container {
           width: 100%;
-          max-width: 650px;
+          max-width: 600px;
           background-color: rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(12px);
-          padding: clamp(20px, 5vw, 40px);
-          margin: 20px auto;
-          display: flex;
-          flex-direction: column;
-          gap: 25px;
+          border-radius: 15px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(10px);
+          padding: 20px;
+          margin: auto;
         }
 
         .title {
-          font-size: clamp(1.5rem, 6vw, 2rem);
+          font-size: 24px;
           font-weight: bold;
           text-align: center;
-          margin: 0;
+          margin-bottom: 20px;
           color: #00ffcc;
         }
 
         .form {
           display: flex;
-          flex-direction: column;
-          gap: 12px;
-          width: 100%;
-        }
-
-        @media (min-width: 500px) {
-          .form {
-            flex-direction: row;
-          }
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
         }
 
         input {
           flex: 1;
-          padding: 12px 15px;
+          min-width: 200px;
+          padding: 10px;
           font-size: 16px;
           color: #fff;
-          border: 2px solid #00ffcc;
-          border-radius: 10px;
-          background-color: rgba(0, 0, 0, 0.2);
+          border: 1px solid #00ffcc;
+          border-radius: 8px;
+          background-color: transparent;
           outline: none;
           transition: all 0.3s;
         }
 
         input:focus {
           border-color: #00ffff;
-          box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+          box-shadow: 0 0 8px #00ffff;
         }
 
         .button-group {
           display: flex;
           gap: 10px;
+          flex-shrink: 0;
         }
 
         button {
-          padding: 12px 20px;
+          padding: 10px 20px;
           font-size: 14px;
           font-weight: bold;
           color: #fff;
           border: none;
-          border-radius: 10px;
+          border-radius: 8px;
           cursor: pointer;
-          transition: transform 0.2s, opacity 0.2s;
+          transition: all 0.3s;
           white-space: nowrap;
-        }
-
-        button:active {
-          transform: scale(0.95);
         }
 
         .submit-button {
           background: linear-gradient(135deg, #00ffcc, #009999);
-          flex: 2;
+        }
+
+        .submit-button:hover {
+          background: linear-gradient(135deg, #00ffff, #00ccaa);
         }
 
         .reset-button {
           background: linear-gradient(135deg, #ff4b5c, #d42e40);
-          flex: 1;
         }
 
-        .user-card {
-          background: rgba(255, 255, 255, 0.05);
-          padding: 20px;
-          border-radius: 15px;
-          border-left: 4px solid #00ffcc;
-          text-align: left;
-        }
-
-        .project-list {
-          display: flex;
-          flex-direction: column;
-          gap: 30px;
+        .reset-button:hover {
+          background: linear-gradient(135deg, #ff6f7c, #ff4b5c);
         }
 
         .project {
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(0, 255, 204, 0.3);
-          border-radius: 15px;
-          padding: 20px;
-          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-          transition: transform 0.3s ease;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid #00ffcc;
+          border-radius: 10px;
+          padding: 15px;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+          word-wrap: break-word;
         }
 
         .project-title a {
-          font-size: 1.2rem;
+          font-size: 18px;
           font-weight: bold;
           color: #00ffcc;
           text-decoration: none;
-          display: block;
-          margin-bottom: 12px;
-          text-align: center;
+        }
+
+        .project-title a:hover {
+          text-decoration: underline;
         }
 
         .project-image {
           width: 100%;
           height: auto;
-          aspect-ratio: 4 / 3;
-          object-fit: cover;
-          border-radius: 12px;
-          border: 2px solid #00ffcc;
-          margin: 10px 0;
+          border-radius: 10px;
+          border: 3px solid #00ffcc;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+          margin-top: 10px;
+          cursor: pointer;
           display: block;
+          box-sizing: border-box;
         }
 
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 10px;
-          margin: 15px 0;
-          font-size: 13px;
-          color: #ccc;
+        .info {
+          font-size: 14px;
+          color: #e0e0e0;
+          margin-top: 10px;
         }
 
-        .action-buttons {
-          display: flex;
-          gap: 12px;
-          margin-top: 15px;
+        .info a {
+          color: #00ffcc;
+          text-decoration: underline;
         }
-
-        .scratch-button, .turbowarp-button {
-          flex: 1;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 45px;
-        }
-
-        .scratch-button { background: #4d97ff; }
-        .turbowarp-button { background: #ff4c4c; }
 
         .usage, .description {
           margin-top: 15px;
-          padding: 12px;
-          border-radius: 10px;
-          background-color: rgba(0, 0, 0, 0.2);
-          border: 1px solid rgba(0, 255, 204, 0.2);
+          padding: 10px;
+          border-radius: 5px;
+          border: 1px solid #00ffcc;
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #fff;
           font-size: 14px;
-          line-height: 1.6;
         }
 
-        .error-msg {
-          color: #ff6b6b;
-          background: rgba(255, 107, 107, 0.1);
-          padding: 10px;
-          border-radius: 8px;
-          text-align: center;
+        .buttons {
+          display: flex;
+          gap: 10px;
+          margin-top: 10px;
+          flex-wrap: wrap;
+        }
+
+        .scratch-button, .turbowarp-button {
+          padding: 8px 16px;
+          font-size: 14px;
           font-weight: bold;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s;
+          flex: 1;
+          text-align: center;
+          min-width: 80px;
+        }
+
+        .scratch-button {
+          background: linear-gradient(135deg, #00ffcc, #009999);
+        }
+
+        .scratch-button:hover {
+          background: linear-gradient(135deg, #00ffff, #00ccaa);
+        }
+
+        .turbowarp-button {
+          background: linear-gradient(135deg, #ff9800, #ff5722);
+        }
+
+        .turbowarp-button:hover {
+          background: linear-gradient(135deg, #ffc107, #ff7043);
+        }
+
+        @media (max-width: 480px) {
+          .form {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .button-group {
+            display: flex;
+            gap: 10px;
+          }
+
+          .button-group button {
+            flex: 1;
+          }
+
+          .title {
+            font-size: 20px;
+          }
         }
       `}</style>
 
-      <main className="container">
+      <main className="container" role="main">
         <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form
@@ -258,84 +276,136 @@ export default function Home() {
             placeholder="ユーザー名を入力"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            aria-label="ユーザー名入力"
             required
           />
+
           <div className="button-group">
-            <button type="submit" className="submit-button">情報取得</button>
-            <button type="button" onClick={reset} className="reset-button">リセット</button>
+            <button type="submit" className="submit-button" aria-label="情報取得">
+              情報取得
+            </button>
+
+            <button
+              type="button"
+              onClick={reset}
+              className="reset-button"
+              aria-label="リセット"
+            >
+              リセット
+            </button>
           </div>
         </form>
 
-        {error && <div className="error-msg">{error}</div>}
-
-        {userInfo && (
-          <section className="user-card">
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#00ffcc' }}>ユーザー情報</h2>
-            <p><strong>ユーザー名:</strong> {userInfo.username}</p>
-            <p>
-              <strong>登録日:</strong>{' '}
-              {userInfo.history?.joined 
-                ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') 
-                : '不明'}
-            </p>
-          </section>
+        {error && (
+          <p style={{ color: '#ff4b5c', marginTop: 15, textAlign: 'center' }}>
+            {error}
+          </p>
         )}
 
-        <div className="project-list">
-          {projects.map((project) => (
-            <article key={project.id} className="project">
-              <div className="project-title">
-                <a href={`https://scratch.mit.edu/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
-                  {project.title}
+        {userInfo && (
+          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.3)', paddingBottom: '15px' }}>
+            <h2 style={{ fontSize: '18px', color: '#00ffcc', marginBottom: '10px' }}>
+              ユーザー情報
+            </h2>
+            
+            <p className="info">
+              <strong>ユーザー名: </strong>
+              {userInfo.username}
+            </p>
+
+            <p className="info">
+              <strong>登録日: </strong>
+              {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
+            </p>
+          </div>
+        )}
+
+        <div style={{ marginTop: 25 }}>
+          {projects.length > 0 &&
+            projects.map((project) => (
+              <div key={project.id} className="project">
+                <p className="project-title">
+                  <a
+                    href={`https://scratch.mit.edu/projects/${project.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {project.title}
+                  </a>
+                </p>
+
+                <a
+                  href={`https://scratch.mit.edu/projects/${project.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  tabIndex={-1}
+                >
+                  <img
+                    src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
+                    alt={`${project.title} サムネイル`}
+                    className="project-image"
+                  />
                 </a>
-              </div>
 
-              <a href={`https://scratch.mit.edu/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
-                  alt={project.title}
-                  className="project-image"
-                  loading="lazy"
-                />
-              </a>
+                <p className="info">
+                  <strong>ID:</strong>{' '}
+                  <a
+                    href={`https://scratch.mit.edu/projects/${project.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {project.id}
+                  </a>
+                </p>
 
-              <div className="info-grid">
-                <div><strong>ID:</strong> {project.id}</div>
-                <div><strong>共有:</strong> {project.published_date}</div>
-                <div><strong>最終更新:</strong> {project.modified_date}</div>
-              </div>
+                <p className="info">
+                  <strong>共有日:</strong> {project.published_date}
+                  <br />
+                  <strong>最終更新日:</strong> {project.modified_date}
+                </p>
 
-              <div className="action-buttons">
-                <button
-                  onClick={() => window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')}
-                  className="scratch-button"
-                >
-                  Scratch
-                </button>
-                <button
-                  onClick={() => window.open(`https://turbowarp.org/${project.id}`, '_blank')}
-                  className="turbowarp-button"
-                >
-                  TurboWarp
-                </button>
-              </div>
+                <div className="buttons">
+                  <button
+                    onClick={() =>
+                      window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')
+                    }
+                    className="scratch-button"
+                  >
+                    Scratch
+                  </button>
 
-              {project.instructions && (
-                <div className="usage">
-                  <strong>使い方:</strong>
-                  <p style={{ margin: '5px 0 0' }}>{project.instructions}</p>
+                  <button
+                    onClick={() =>
+                      window.open(`https://turbowarp.org/${project.id}`, '_blank')
+                    }
+                    className="turbowarp-button"
+                  >
+                    TurboWarp
+                  </button>
                 </div>
-              )}
-              {project.description && (
-                <div className="description">
-                  <strong>メモとクレジット:</strong>
-                  <p style={{ margin: '5px 0 0' }}>{project.description}</p>
-                </div>
-              )}
-            </article>
-          ))}
+
+                {project.instructions && (
+                  <div className="usage">
+                    <strong>使い方:</strong>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>
+                      {project.instructions}
+                    </p>
+                  </div>
+                )}
+
+                {project.description && (
+                  <div className="description">
+                    <strong>メモとクレジット:</strong>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>
+                      {project.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
         </div>
       </main>
+
       <Analytics />
     </>
   );
