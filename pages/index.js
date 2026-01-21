@@ -1,14 +1,14 @@
 // pages/index.js
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Analytics } from '@vercelanalytics/next';
+import { Analytics } from '@vercel/analytics/next';
 
 export default function Home() {
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
-  const [currentYear, setCurrentYear] = useState(2025);
+  const [currentYear, setCurrentYear] = useState(2026);
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -261,7 +261,7 @@ export default function Home() {
             &copy; 2024 &ndash; {currentYear} scratch-user-info
           </div>
           <p className="disclaimer">
-            ScratchはMITメディア・ラボのライフロング・キンダーガーテン・グループが開発したプロジェクトです。<br />
+            ScratchはMITメディア・ラボが開発したプロジェクトです。<br />
             本サイトは非公式ツールであり、Scratch公式とは一切関係ありません。
           </p>
         </footer>
@@ -271,4 +271,3 @@ export default function Home() {
     </>
   );
 }
-
