@@ -50,13 +50,13 @@ export default function Home() {
     <>
       <Head>
         <title>Scratchユーザー情報表示</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/icon.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <style jsx global>{`
         body {
-          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-family: 'Roboto', sans-serif;
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
           margin: 0;
           display: flex;
@@ -64,194 +64,185 @@ export default function Home() {
           align-items: flex-start;
           min-height: 100vh;
           color: #fff;
-          padding: 20px 10px;
+          padding: 20px;
           box-sizing: border-box;
         }
       `}</style>
 
       <style jsx>{`
         .container {
-          width: 95%;
-          max-width: 650px;
-          background-color: rgba(255, 255, 255, 0.08);
-          border-radius: 15px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          padding: 20px;
+          width: 100%;
+          max-width: 700px;
+          background-color: rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(15px);
+          padding: 30px 20px;
           margin: 20px auto;
         }
 
         .title {
-          font-size: 1.6rem;
+          font-size: clamp(1.5rem, 5vw, 2rem);
           font-weight: bold;
           text-align: center;
-          margin-bottom: 25px;
+          margin-bottom: 30px;
           color: #00ffcc;
-          letter-spacing: 1px;
+          text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
         }
 
         .form {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 15px;
+          width: 100%;
         }
 
-        .input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
+        @media (min-width: 480px) {
+          .form {
+            flex-direction: row;
+          }
         }
 
         input {
-          width: 100%;
-          padding: 14px;
+          flex: 2;
+          padding: 12px 15px;
           font-size: 16px;
           color: #fff;
-          border: 1px solid #00ffcc;
+          border: 2px solid #00ffcc;
           border-radius: 10px;
-          background-color: rgba(255, 255, 255, 0.05);
+          background-color: rgba(0, 0, 0, 0.2);
           outline: none;
           transition: all 0.3s ease;
-          box-sizing: border-box;
         }
 
         input:focus {
           border-color: #00ffff;
-          box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
-          background-color: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
         }
 
         .button-group {
           display: flex;
           gap: 10px;
+          flex: 1;
         }
 
         button {
-          flex: 1;
-          padding: 14px;
+          padding: 12px;
           font-size: 14px;
           font-weight: bold;
           color: #fff;
           border: none;
           border-radius: 10px;
           cursor: pointer;
-          transition: transform 0.1s, opacity 0.3s;
+          transition: transform 0.2s, opacity 0.2s;
+          white-space: nowrap;
         }
 
         button:active {
-          transform: scale(0.96);
+          transform: scale(0.95);
         }
 
         .submit-button {
+          flex: 2;
           background: linear-gradient(135deg, #00ffcc, #009999);
         }
 
         .reset-button {
+          flex: 1;
           background: linear-gradient(135deg, #ff4b5c, #d42e40);
         }
 
         .user-card {
           margin-top: 30px;
-          padding: 18px;
-          background: rgba(0, 255, 204, 0.08);
-          border-radius: 12px;
+          padding: 20px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 15px;
           border-left: 5px solid #00ffcc;
         }
 
-        .user-card h2 {
-          font-size: 1.2rem;
-          margin: 0 0 10px 0;
-          color: #00ffcc;
+        .project-list {
+          margin-top: 30px;
+          display: flex;
+          flex-direction: column;
+          gap: 25px;
         }
 
         .project {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(0, 255, 204, 0.2);
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(0, 255, 204, 0.3);
           border-radius: 15px;
           padding: 20px;
-          margin-top: 25px;
-        }
-
-        .project-title {
-          margin: 0 0 15px 0;
-          font-size: 1.15rem;
-          line-height: 1.4;
+          box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+          transition: translateY 0.3s;
         }
 
         .project-title a {
+          font-size: 1.2rem;
+          font-weight: bold;
           color: #00ffcc;
           text-decoration: none;
+          display: block;
+          margin-bottom: 12px;
         }
 
         .project-image {
           width: 100%;
           height: auto;
+          aspect-ratio: 4 / 3;
+          object-fit: cover;
           border-radius: 10px;
-          display: block;
-          margin-bottom: 15px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 2px solid rgba(0, 255, 204, 0.5);
+          margin: 10px 0;
         }
 
         .info-grid {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 8px;
-          font-size: 13.5px;
-          color: #e0e0e0;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 10px;
+          margin: 15px 0;
+          font-size: 13px;
+          color: #ccc;
         }
 
-        .info-item b {
-          color: #00ffcc;
-          margin-right: 5px;
+        .usage, .description {
+          margin-top: 15px;
+          padding: 12px;
+          border-radius: 8px;
+          background-color: rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(0, 255, 204, 0.2);
+          font-size: 14px;
+          line-height: 1.6;
         }
 
         .action-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          display: flex;
           gap: 12px;
-          margin: 20px 0;
+          margin-top: 15px;
         }
 
-        .text-box {
-          font-size: 13px;
-          padding: 12px;
+        .scratch-button, .turbowarp-button {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 40px;
+        }
+
+        .scratch-button { background: #4d97ff; }
+        .turbowarp-button { background: #ff4c4c; }
+
+        .error-message {
+          color: #ff6b6b;
+          background: rgba(255, 107, 107, 0.1);
+          padding: 10px;
           border-radius: 8px;
-          background: rgba(0, 0, 0, 0.25);
-          margin-top: 12px;
-          white-space: pre-wrap;
-          word-break: break-word;
-          line-height: 1.6;
-          border: 1px solid rgba(0, 255, 204, 0.1);
-        }
-
-        .text-box strong {
-          display: block;
-          margin-bottom: 6px;
-          color: #00ffcc;
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        @media (min-width: 600px) {
-          .form {
-            flex-direction: row;
-            align-items: flex-start;
-          }
-
-          .button-group {
-            flex: 0 0 200px;
-          }
-
-          .info-grid {
-            grid-template-columns: 1fr 1fr;
-          }
+          margin-top: 15px;
+          text-align: center;
         }
       `}</style>
 
       <main className="container">
-        <h1 className="title">Scratch Explorer</h1>
+        <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form
           className="form"
@@ -267,10 +258,9 @@ export default function Home() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-
           <div className="button-group">
             <button type="submit" className="submit-button">
-              取得
+              情報取得
             </button>
             <button type="button" onClick={reset} className="reset-button">
               リセット
@@ -278,84 +268,77 @@ export default function Home() {
           </div>
         </form>
 
-        {error && (
-          <p style={{ color: '#ff4b5c', textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
-            {error}
-          </p>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         {userInfo && (
           <section className="user-card">
-            <h2>User Profile</h2>
-            <div className="info-grid">
-              <div className="info-item">
-                <b>ユーザー名:</b> {userInfo.username}
-              </div>
-              <div className="info-item">
-                <b>登録日:</b> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
-              </div>
-            </div>
+            <h2>ユーザー情報</h2>
+            <p><strong>ユーザー名:</strong> {userInfo.username}</p>
+            <p>
+              <strong>登録日:</strong>{' '}
+              {userInfo.history?.joined 
+                ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') 
+                : '不明'}
+            </p>
           </section>
         )}
 
         <div className="project-list">
           {projects.map((project) => (
             <article key={project.id} className="project">
-              <h3 className="project-title">
+              <div className="project-title">
                 <a href={`https://scratch.mit.edu/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
                   {project.title}
                 </a>
-              </h3>
+              </div>
 
-              <img
-                src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
-                alt={project.title}
-                className="project-image"
-                loading="lazy"
-              />
+              <a href={`https://scratch.mit.edu/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
+                  alt={project.title}
+                  className="project-image"
+                  loading="lazy"
+                />
+              </a>
 
               <div className="info-grid">
-                <div className="info-item">
-                  <b>Project ID:</b> {project.id}
-                </div>
-                <div className="info-item">
-                  <b>公開日:</b> {project.published_date}
-                </div>
+                <div><strong>ID:</strong> {project.id}</div>
+                <div><strong>共有:</strong> {project.published_date}</div>
+                <div><strong>更新:</strong> {project.modified_date}</div>
               </div>
 
               <div className="action-buttons">
                 <button
                   onClick={() => window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')}
-                  className="submit-button"
+                  className="scratch-button"
                 >
-                  Scratch
+                  S
                 </button>
                 <button
                   onClick={() => window.open(`https://turbowarp.org/${project.id}`, '_blank')}
-                  style={{ background: 'linear-gradient(135deg, #ff9800, #ff5722)' }}
+                  className="turbowarp-button"
                 >
-                  TurboWarp
+                  T
                 </button>
               </div>
 
               {project.instructions && (
-                <div className="text-box">
-                  <strong>How to Play</strong>
-                  {project.instructions}
+                <div className="usage">
+                  <strong>使い方:</strong>
+                  <p>{project.instructions}</p>
                 </div>
               )}
 
               {project.description && (
-                <div className="text-box">
-                  <strong>Notes & Credits</strong>
-                  {project.description}
+                <div className="description">
+                  <strong>メモとクレジット:</strong>
+                  <p>{project.description}</p>
                 </div>
               )}
             </article>
           ))}
         </div>
       </main>
-
       <Analytics />
     </>
   );
