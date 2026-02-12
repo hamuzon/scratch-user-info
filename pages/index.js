@@ -286,6 +286,12 @@ export default function Home() {
           <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
             <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
             <p className="info"><strong>ユーザー名:</strong> {userInfo.username}</p>
+            {userInfo.profile?.country && (
+              <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
+            )}
+            {userInfo.scratchteam && (
+              <p className="info"><strong>メンバーシップ:</strong> Scratch Team</p>
+            )}
             <p className="info">
               <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
             </p>
