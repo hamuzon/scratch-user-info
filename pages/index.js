@@ -340,7 +340,7 @@ export default function Home() {
             {userInfo.scratchteam && (
               <p className="info"><strong>ScratchTeams:</strong> はい</p>
             )}
-            <p className="info"><strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}</p>
+            <p className="info"><strong>メンバーシップ / Membership:</strong> {userInfo.profile?.status || '不明'}</p>
             {userInfo.profile?.bio && (
               <p className="info"><strong>私について / About me:</strong> {userInfo.profile.bio}</p>
             )}
