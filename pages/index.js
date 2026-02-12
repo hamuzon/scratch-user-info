@@ -289,8 +289,8 @@ export default function Home() {
             {userInfo.profile?.country && (
               <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
             )}
-            {userInfo.scratchteam && (
-              <p className="info"><strong>メンバーシップ:</strong> Scratch Team</p>
+            {userInfo.scratchteam === true && (
+              <p className="info"><strong>メンバーシップ:</strong> Scratchチーム</p>
             )}
             <p className="info">
               <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
