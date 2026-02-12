@@ -290,6 +290,7 @@ export default function Home() {
               <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
             )}
             {userInfo.scratchteam === true && (
+              <p className="info"><strong>ScratchTeams</strong></p>
               <p className="info"><strong>メンバーシップ:</strong> ScratchTeams</p>
             )}
             <p className="info">
