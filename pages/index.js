@@ -182,6 +182,20 @@ export default function Home() {
           display: block;
         }
 
+        .project-image-link {
+          display: block;
+          margin-top: 10px;
+        }
+
+        .username-link {
+          color: #00ffcc;
+          text-decoration: none;
+        }
+
+        .username-link:hover {
+          text-decoration: underline;
+        }
+
         .info {
           font-size: 13px;
           color: #e0e0e0;
@@ -285,7 +299,17 @@ export default function Home() {
         {userInfo && (
           <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
             <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
-            <p className="info"><strong>ユーザー名:</strong> {userInfo.username}</p>
+            <p className="info">
+              <strong>ユーザー名:</strong>{' '}
+              <a
+                href={`https://scratch.mit.edu/users/${encodeURIComponent(userInfo.username)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="username-link"
+              >
+                @{userInfo.username}
+              </a>
+            </p>
             {userInfo.profile?.country && (
               <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
             )}
@@ -309,11 +333,18 @@ export default function Home() {
                   </a>
                 </div>
 
-                <img
-                  src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
-                  alt={project.title}
-                  className="project-image"
-                />
+                <a
+                  href={`https://scratch.mit.edu/projects/${project.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-image-link"
+                >
+                  <img
+                    src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
+                    alt={project.title}
+                    className="project-image"
+                  />
+                </a>
 
                 <p className="info">
                   <strong>ID:</strong> {project.id}<br />
