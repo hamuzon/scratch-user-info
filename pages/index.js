@@ -289,8 +289,12 @@ export default function Home() {
             {userInfo.profile?.country && (
               <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
             )}
-            {userInfo.scratchteam === true && (
-              <p className="info"><strong>メンバーシップ:</strong> Scratchチーム</p>
+            <p className="info"><strong>Scratchチーム:</strong> {userInfo.scratchteam ? 'はい' : 'いいえ'}</p>
+            {(userInfo.membership_label ?? userInfo.profile?.membership_label) != null && (
+              <p className="info"><strong>メンバーシップラベル:</strong> {userInfo.membership_label ?? userInfo.profile?.membership_label}</p>
+            )}
+            {(userInfo.membership_avatar_badge ?? userInfo.profile?.membership_avatar_badge) != null && (
+              <p className="info"><strong>メンバーシップバッジ:</strong> {userInfo.membership_avatar_badge ?? userInfo.profile?.membership_avatar_badge}</p>
             )}
             <p className="info">
               <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
