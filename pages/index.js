@@ -316,7 +316,13 @@ export default function Home() {
             {userInfo.scratchteam && (
               <p className="info"><strong>ScratchTeams:</strong> はい</p>
             )}
-            <p className="info"><strong>メンバーシップ:</strong> {userInfo.profile?.status || '不明'}</p>
+            <p className="info"><strong>メンバーシップ / Membership:</strong> {userInfo.profile?.status || '不明'}</p>
+            {userInfo.profile?.bio && (
+              <p className="info"><strong>私について / About me:</strong> {userInfo.profile.bio}</p>
+            )}
+            {userInfo.profile?.status && (
+              <p className="info"><strong>私が取り組んでいること / What I'm working on:</strong> {userInfo.profile.status}</p>
+            )}
             <p className="info">
               <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
             </p>
