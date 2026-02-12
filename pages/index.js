@@ -8,6 +8,30 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
 
+  const getMembershipText = (user) => {
+    if (user?.scratchteam) {
+      return 'Scratch Team';
+    }
+
+    if (user?.membership_label === 1) {
+      return 'Scratcher';
+    }
+
+    if (user?.membership_label === 0) {
+      return 'New Scratcher';
+    }
+
+    if (typeof user?.membership_label === 'string' && user.membership_label.trim()) {
+      return user.membership_label;
+    }
+
+    if (typeof user?.membership_avatar_badge === 'number') {
+      return user.membership_avatar_badge === 1 ? 'Scratcher' : 'New Scratcher';
+    }
+
+    return '不明';
+  };
+
   const fetchUserInfo = async () => {
     setError('');
     setUserInfo(null);
@@ -316,7 +340,13 @@ export default function Home() {
             {userInfo.scratchteam && (
               <p className="info"><strong>ScratchTeams:</strong> はい</p>
             )}
-            <p className="info"><strong>メンバーシップ:</strong> {userInfo.profile?.status || '不明'}</p>
+            <p className="info"><strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}</p>
+            {userInfo.profile?.bio && (
+              <p className="info"><strong>私について / About me:</strong> {userInfo.profile.bio}</p>
+            )}
+            {userInfo.profile?.status && (
+              <p className="info"><strong>私が取り組んでいること / What I'm working on:</strong> {userInfo.profile.status}</p>
+            )}
             <p className="info">
               <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
             </p>
