@@ -32,6 +32,14 @@ export default function Home() {
     return '不明';
   };
 
+  const shouldShowMembership = (user) => {
+    return Boolean(
+      user?.scratchteam ||
+      typeof user?.membership_label !== 'undefined' ||
+      typeof user?.membership_avatar_badge !== 'undefined'
+    );
+  };
+
   const fetchUserInfo = async () => {
     setError('');
     setUserInfo(null);
@@ -227,6 +235,26 @@ export default function Home() {
           line-height: 1.5;
         }
 
+        .profile-section {
+          margin-top: 14px;
+          padding: 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(0, 255, 204, 0.25);
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .profile-section strong {
+          color: #00ffcc;
+          display: block;
+          margin-bottom: 6px;
+        }
+
+        .profile-section p {
+          margin: 0;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+
         .usage, .description {
           margin-top: 15px;
           padding: 12px;
@@ -340,12 +368,20 @@ export default function Home() {
             {userInfo.scratchteam && (
               <p className="info"><strong>ScratchTeams:</strong> はい</p>
             )}
-            <p className="info"><strong>メンバーシップ / Membership:</strong> {userInfo.profile?.status || '不明'}</p>
+            {shouldShowMembership(userInfo) && (
+              <p className="info"><strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}</p>
+            )}
             {userInfo.profile?.bio && (
-              <p className="info"><strong>私について / About me:</strong> {userInfo.profile.bio}</p>
+              <div className="profile-section">
+                <strong>私について / About me</strong>
+                <p>{userInfo.profile.bio}</p>
+              </div>
             )}
             {userInfo.profile?.status && (
-              <p className="info"><strong>私が取り組んでいること / What I'm working on:</strong> {userInfo.profile.status}</p>
+              <div className="profile-section">
+                <strong>私が取り組んでいること / What I'm working on</strong>
+                <p>{userInfo.profile.status}</p>
+              </div>
             )}
             <p className="info">
               <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
