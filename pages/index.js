@@ -8,29 +8,84 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
 
-  const getMembershipText = (user) => {
-    if (user?.scratchteam) {
-      return 'Scratch Team';
+  const formatJoinedDate = (joined) => {
+    if (!joined) {
+      return { short: '不明', detail: '不明' };
     }
 
-    if (user?.membership_label === 1) {
-      return 'Scratcher';
-    }
-
-    if (user?.membership_label === 0) {
-      return 'New Scratcher';
-    }
-
-    if (typeof user?.membership_label === 'string' && user.membership_label.trim()) {
-      return user.membership_label;
-    }
-
-    if (typeof user?.membership_avatar_badge === 'number') {
-      return user.membership_avatar_badge === 1 ? 'Scratcher' : 'New Scratcher';
-    }
-
-    return '不明';
+    const date = new Date(joined);
+    return {
+      short: date.toLocaleDateString('ja-JP'),
+      detail: date.toLocaleString('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    };
   };
+
+  const normalizeMembershipValue = (value) => {
+    if (typeof value === 'string') {
+      const normalized = value.trim();
+      if (!normalized) {
+        return '';
+      }
+
+      const lowered = normalized.toLowerCase();
+      if (['0', 'false', 'none', 'null', 'undefined', 'new scratcher'].includes(lowered)) {
+        return '';
+      }
+
+      return normalized;
+    }
+
+    if (typeof value === 'number') {
+      if (value <= 0) {
+        return '';
+      }
+
+      return value === 1 ? 'Scratcher' : `Membership ${value}`;
+    }
+
+    if (typeof value === 'boolean') {
+      return value ? 'Scratcher' : '';
+    }
+
+    if (value && typeof value === 'object') {
+      return (
+        normalizeMembershipValue(value.label) ||
+        normalizeMembershipValue(value.name) ||
+        normalizeMembershipValue(value.text) ||
+        ''
+      );
+    }
+
+    return '';
+  };
+
+  const getMembershipText = (user) => {
+    const candidates = [
+      user?.membership_label,
+      user?.membership_avatar_badge,
+      user?.profile?.membership_label,
+      user?.profile?.membership_avatar_badge,
+    ];
+
+    for (const candidate of candidates) {
+      const parsed = normalizeMembershipValue(candidate);
+      if (parsed) {
+        return parsed;
+      }
+    }
+
+    return '';
+  };
+
+  const shouldShowMembership = (user) => Boolean(getMembershipText(user));
 
   const fetchUserInfo = async () => {
     setError('');
@@ -110,9 +165,10 @@ export default function Home() {
           font-size: 24px;
           font-weight: bold;
           text-align: center;
-          margin-bottom: 20px;
+          margin-bottom: 8px;
           color: #00ffcc;
         }
+
 
         .form {
           display: flex;
@@ -227,6 +283,37 @@ export default function Home() {
           line-height: 1.5;
         }
 
+        .profile-section {
+          margin-top: 14px;
+          padding: 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(0, 255, 204, 0.25);
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .profile-section strong {
+          color: #00ffcc;
+          display: block;
+          margin-bottom: 6px;
+        }
+
+        .profile-section p {
+          margin: 0;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+
+        .meta-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .meta-row .info {
+          margin-top: 10px;
+        }
+
         .usage, .description {
           margin-top: 15px;
           padding: 12px;
@@ -297,7 +384,7 @@ export default function Home() {
         >
           <input
             type="text"
-            placeholder="ユーザー名を入力"
+            placeholder="ユーザー名またはURLを入力"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -334,22 +421,38 @@ export default function Home() {
                 @{userInfo.username}
               </a>
             </p>
-            {userInfo.profile?.country && (
-              <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
-            )}
+            <div className="meta-row">
+              {userInfo.profile?.country && (
+                <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
+              )}
+              <p className="info">
+                <strong>登録日:</strong>{' '}
+                <time
+                  title={`${formatJoinedDate(userInfo.history?.joined).detail}（ホバー/タップで詳細）`}
+                  dateTime={userInfo.history?.joined || ''}
+                >
+                  {formatJoinedDate(userInfo.history?.joined).short}
+                </time>
+              </p>
+            </div>
             {userInfo.scratchteam && (
               <p className="info"><strong>ScratchTeams:</strong> はい</p>
             )}
-            <p className="info"><strong>メンバーシップ / Membership:</strong> {userInfo.profile?.status || '不明'}</p>
+            {shouldShowMembership(userInfo) && (
+              <p className="info"><strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}</p>
+            )}
             {userInfo.profile?.bio && (
-              <p className="info"><strong>私について / About me:</strong> {userInfo.profile.bio}</p>
+              <div className="profile-section">
+                <strong>私について / About me</strong>
+                <p>{userInfo.profile.bio}</p>
+              </div>
             )}
             {userInfo.profile?.status && (
-              <p className="info"><strong>私が取り組んでいること / What I'm working on:</strong> {userInfo.profile.status}</p>
+              <div className="profile-section">
+                <strong>私が取り組んでいること / What I'm working on</strong>
+                <p>{userInfo.profile.status}</p>
+              </div>
             )}
-            <p className="info">
-              <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
-            </p>
           </div>
         )}
 

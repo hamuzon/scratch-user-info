@@ -6,7 +6,6 @@ export default async function handler(req, res) {
   }
 
   let body = req.body;
-  // If body is a string (not parsed), try to parse it
   if (typeof body === 'string') {
     try {
       body = JSON.parse(body);
@@ -15,22 +14,27 @@ export default async function handler(req, res) {
     }
   }
 
-  const username = body.username;
-  if (!username) {
+  const rawInput = String(body.username || '').trim();
+  if (!rawInput) {
     return res.status(400).json({ error: 'username is required' });
   }
 
   try {
-    const userRes = await fetch(`https://api.scratch.mit.edu/users/${username}`);
+    const resolvedUsername = await resolveUsername(rawInput);
+    if (!resolvedUsername) {
+      return res.status(400).json({ error: 'username is required' });
+    }
+
+    const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
     if (!userRes.ok) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${username}/projects`);
+    const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`);
     let projects = [];
     if (projectsRes.ok) {
       projects = await projectsRes.json();
-      projects = projects.map(project => ({
+      projects = projects.map((project) => ({
         ...project,
         published_date: formatDatetime(project.history?.created),
         modified_date: formatDatetime(project.history?.modified),
@@ -39,10 +43,62 @@ export default async function handler(req, res) {
 
     const userInfo = await userRes.json();
 
-    return res.status(200).json({ user_info: userInfo, projects });
-  } catch (e) {
+    return res.status(200).json({ user_info: userInfo, projects, resolved_username: resolvedUsername });
+  } catch {
     return res.status(500).json({ error: 'Internal server error' });
   }
+}
+
+async function resolveUsername(input) {
+  const trimmed = input.trim();
+  const normalized = trimmed
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/^\/+/, '');
+
+  const scratchUserMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
+  if (scratchUserMatch?.[1]) {
+    return scratchUserMatch[1];
+  }
+
+  const scratchApiUserMatch = normalized.match(/^(?:api\.scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
+  if (scratchApiUserMatch?.[1]) {
+    return scratchApiUserMatch[1];
+  }
+
+  const scratchProjectMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?projects\/(\d+)(?:[/?#].*)?$/i);
+  if (scratchProjectMatch?.[1]) {
+    return getProjectAuthorUsername(scratchProjectMatch[1]);
+  }
+
+  const turboWarpProjectMatch = normalized.match(/^(?:turbowarp\.org\/)?(\d+)(?:[/?#].*)?$/i);
+  if (turboWarpProjectMatch?.[1]) {
+    return getProjectAuthorUsername(turboWarpProjectMatch[1]);
+  }
+
+  const singleSegmentMatch = normalized.match(/^([A-Za-z0-9_-]{3,20})(?:[/?#].*)?$/);
+  if (singleSegmentMatch?.[1]) {
+    const candidate = singleSegmentMatch[1];
+
+    if (/^\d+$/.test(candidate)) {
+      return getProjectAuthorUsername(candidate);
+    }
+
+    return candidate;
+  }
+
+  return '';
+}
+
+
+async function getProjectAuthorUsername(projectId) {
+  const projectRes = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
+  if (!projectRes.ok) {
+    return '';
+  }
+
+  const project = await projectRes.json();
+  return project?.author?.username || '';
 }
 
 function formatDatetime(datetimeString) {
@@ -60,4 +116,3 @@ function formatDatetime(datetimeString) {
     return '不明';
   }
 }
-
