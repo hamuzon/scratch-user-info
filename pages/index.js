@@ -298,14 +298,26 @@ export default function Home() {
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: #00ffcc;
-          text-decoration: none;
+          color: inherit;
+          text-decoration-line: underline;
+          text-decoration-thickness: from-font;
+          text-underline-offset: 3px;
+          text-decoration-color: rgba(255, 255, 255, 0.9);
           display: block;
           margin-bottom: 5px;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .project-title a:visited {
-          color: #00ffcc;
+          color: inherit;
+        }
+
+        .project-title a:hover,
+        .project-title a:focus-visible,
+        .project-title a:active {
+          color: inherit;
+          text-decoration-thickness: 2px;
         }
 
         .project-image {
@@ -325,19 +337,24 @@ export default function Home() {
         }
 
         .username-link {
-          color: #00ffcc;
-          text-decoration: none;
+          color: inherit;
+          text-decoration-line: underline;
+          text-decoration-thickness: from-font;
+          text-underline-offset: 2px;
+          text-decoration-color: rgba(255, 255, 255, 0.9);
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .username-link:visited {
-          color: #00ffcc;
+          color: inherit;
         }
 
         .username-link:hover,
         .username-link:focus-visible,
         .username-link:active {
-          text-decoration: underline;
-          color: #00ffcc;
+          color: inherit;
+          text-decoration-thickness: 2px;
         }
 
         .info {
@@ -371,8 +388,8 @@ export default function Home() {
           color: inherit;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
-          text-underline-offset: 2px;
-          text-decoration-color: currentColor;
+          text-underline-offset: 3px;
+          text-decoration-color: rgba(255, 255, 255, 0.9);
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -451,6 +468,14 @@ export default function Home() {
 
           .project-title a {
             font-size: 16px;
+          }
+
+          .meta-row {
+            gap: 8px;
+          }
+
+          .info {
+            line-height: 1.6;
           }
         }
       `}</style>
