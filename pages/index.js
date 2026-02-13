@@ -9,35 +9,19 @@ export default function Home() {
   const [error, setError] = useState('');
 
   const getMembershipText = (user) => {
-    if (user?.scratchteam) {
-      return 'Scratch Team';
-    }
-
-    if (user?.membership_label === 1) {
-      return 'Scratcher';
-    }
-
-    if (user?.membership_label === 0) {
-      return 'New Scratcher';
-    }
-
     if (typeof user?.membership_label === 'string' && user.membership_label.trim()) {
       return user.membership_label;
     }
 
-    if (typeof user?.membership_avatar_badge === 'number') {
-      return user.membership_avatar_badge === 1 ? 'Scratcher' : 'New Scratcher';
+    if (typeof user?.membership_avatar_badge === 'string' && user.membership_avatar_badge.trim()) {
+      return user.membership_avatar_badge;
     }
 
-    return '不明';
+    return '';
   };
 
   const shouldShowMembership = (user) => {
-    return Boolean(
-      user?.scratchteam ||
-      typeof user?.membership_label !== 'undefined' ||
-      typeof user?.membership_avatar_badge !== 'undefined'
-    );
+    return Boolean(getMembershipText(user));
   };
 
   const fetchUserInfo = async () => {
