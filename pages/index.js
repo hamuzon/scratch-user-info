@@ -327,7 +327,7 @@ export default function Home() {
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: rgba(255, 255, 255, 0.9);
+          text-decoration-color: currentColor;
           display: block;
           margin-bottom: 5px;
           overflow-wrap: anywhere;
@@ -366,7 +366,7 @@ export default function Home() {
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 2px;
-          text-decoration-color: rgba(255, 255, 255, 0.9);
+          text-decoration-color: currentColor;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -414,7 +414,7 @@ export default function Home() {
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: rgba(255, 255, 255, 0.9);
+          text-decoration-color: currentColor;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
