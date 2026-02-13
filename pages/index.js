@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 
+const TEXT_LINK_PATTERN = /(https?:\/\/[^\s]+)|@([A-Za-z0-9_-]+)/g;
+
 export default function Home() {
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
@@ -123,6 +125,57 @@ export default function Home() {
     setProjects([]);
     setUserInfo(null);
     setError('');
+  };
+
+  const renderTextWithLinks = (text) => {
+    if (!text) {
+      return '';
+    }
+
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = TEXT_LINK_PATTERN.exec(text)) !== null) {
+      const matchText = match[0];
+      const matchStart = match.index;
+      const matchEnd = matchStart + matchText.length;
+
+      if (matchStart > lastIndex) {
+        parts.push(text.slice(lastIndex, matchStart));
+      }
+
+      if (match[1]) {
+        parts.push(
+          <a key={`${matchStart}-url`} href={match[1]} target="_blank" rel="noopener noreferrer" className="inline-link">
+            {match[1]}
+          </a>
+        );
+      } else if (match[2]) {
+        const mention = match[2];
+        parts.push(
+          <a
+            key={`${matchStart}-mention`}
+            href={`https://scratch.mit.edu/users/${encodeURIComponent(mention)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-link"
+          >
+            @{mention}
+          </a>
+        );
+      }
+
+      lastIndex = matchEnd;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    TEXT_LINK_PATTERN.lastIndex = 0;
+
+    return parts;
   };
 
   return (
@@ -303,6 +356,16 @@ export default function Home() {
           word-break: break-word;
         }
 
+        .inline-link {
+          color: #00ffcc;
+          text-decoration: underline;
+          word-break: break-all;
+        }
+
+        .inline-link:hover {
+          color: #00ffff;
+        }
+
         .meta-row {
           display: flex;
           flex-wrap: wrap;
@@ -444,13 +507,13 @@ export default function Home() {
             {userInfo.profile?.bio && (
               <div className="profile-section">
                 <strong>私について / About me</strong>
-                <p>{userInfo.profile.bio}</p>
+                <p>{renderTextWithLinks(userInfo.profile.bio)}</p>
               </div>
             )}
             {userInfo.profile?.status && (
               <div className="profile-section">
                 <strong>私が取り組んでいること / What I'm working on</strong>
-                <p>{userInfo.profile.status}</p>
+                <p>{renderTextWithLinks(userInfo.profile.status)}</p>
               </div>
             )}
           </div>
@@ -504,14 +567,14 @@ export default function Home() {
                 {project.instructions && (
                   <div className="usage">
                     <strong>使い方:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{project.instructions}</p>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(project.instructions)}</p>
                   </div>
                 )}
 
                 {project.description && (
                   <div className="description">
                     <strong>メモとクレジット:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{project.description}</p>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(project.description)}</p>
                   </div>
                 )}
               </div>
