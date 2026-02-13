@@ -331,6 +331,9 @@ export default function Home() {
 
       <main className="container">
         <h1 className="title">Scratchユーザー情報表示</h1>
+        <p style={{ marginTop: 0, marginBottom: 12, fontSize: 12, color: '#cfeee9', textAlign: 'center' }}>
+          ユーザー名・ScratchユーザーURL・APIユーザーURL・Scratch作品URL・TurboWarp作品URL に対応
+        </p>
 
         <form
           className="form"

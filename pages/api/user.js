@@ -51,23 +51,27 @@ export default async function handler(req, res) {
 
 async function resolveUsername(input) {
   const trimmed = input.trim();
+  const normalized = trimmed
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/^\/+/, '');
 
-  const scratchUserMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?scratch\.mit\.edu\/users\/([A-Za-z0-9_-]+)\/?/i);
+  const scratchUserMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
   if (scratchUserMatch?.[1]) {
     return scratchUserMatch[1];
   }
 
-  const scratchApiUserMatch = trimmed.match(/(?:https?:\/\/)?api\.scratch\.mit\.edu\/users\/([A-Za-z0-9_-]+)\/?/i);
+  const scratchApiUserMatch = normalized.match(/^(?:api\.scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
   if (scratchApiUserMatch?.[1]) {
     return scratchApiUserMatch[1];
   }
 
-  const scratchProjectMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?scratch\.mit\.edu\/projects\/(\d+)/i);
+  const scratchProjectMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?projects\/(\d+)(?:[/?#].*)?$/i);
   if (scratchProjectMatch?.[1]) {
     return getProjectAuthorUsername(scratchProjectMatch[1]);
   }
 
-  const turboWarpProjectMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?turbowarp\.org\/(\d+)/i);
+  const turboWarpProjectMatch = normalized.match(/^(?:turbowarp\.org\/)?(\d+)(?:[/?#].*)?$/i);
   if (turboWarpProjectMatch?.[1]) {
     return getProjectAuthorUsername(turboWarpProjectMatch[1]);
   }
