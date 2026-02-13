@@ -369,8 +369,12 @@ export default function Home() {
 
         .inline-link {
           color: inherit;
-          text-decoration: underline;
-          word-break: break-all;
+          text-decoration-line: underline;
+          text-decoration-thickness: from-font;
+          text-underline-offset: 2px;
+          text-decoration-color: currentColor;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .inline-link:visited,
@@ -378,6 +382,8 @@ export default function Home() {
         .inline-link:focus-visible,
         .inline-link:active {
           color: inherit;
+          text-decoration-line: underline;
+          text-decoration-color: currentColor;
         }
 
         .meta-row {
