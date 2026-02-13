@@ -8,6 +8,26 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
 
+  const formatJoinedDate = (joined) => {
+    if (!joined) {
+      return { short: '不明', detail: '不明' };
+    }
+
+    const date = new Date(joined);
+    return {
+      short: date.toLocaleDateString('ja-JP'),
+      detail: date.toLocaleString('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    };
+  };
+
   const getMembershipText = (user) => {
     if (typeof user?.membership_label === 'string' && user.membership_label.trim()) {
       return user.membership_label;
@@ -102,8 +122,16 @@ export default function Home() {
           font-size: 24px;
           font-weight: bold;
           text-align: center;
-          margin-bottom: 20px;
+          margin-bottom: 8px;
           color: #00ffcc;
+        }
+
+        .helper-text {
+          text-align: center;
+          color: #cfeee9;
+          font-size: 12px;
+          margin-bottom: 16px;
+          line-height: 1.5;
         }
 
         .form {
@@ -239,6 +267,17 @@ export default function Home() {
           word-break: break-word;
         }
 
+        .meta-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .meta-row .info {
+          margin-top: 10px;
+        }
+
         .usage, .description {
           margin-top: 15px;
           padding: 12px;
@@ -299,6 +338,7 @@ export default function Home() {
 
       <main className="container">
         <h1 className="title">Scratchユーザー情報表示</h1>
+        <p className="helper-text">ユーザー名・ScratchユーザーURL・APIユーザーURL・Scratch作品URL・TurboWarp作品URL に対応</p>
 
         <form
           className="form"
@@ -309,7 +349,7 @@ export default function Home() {
         >
           <input
             type="text"
-            placeholder="ユーザー名を入力"
+            placeholder="ユーザー名またはURLを入力"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -346,9 +386,20 @@ export default function Home() {
                 @{userInfo.username}
               </a>
             </p>
-            {userInfo.profile?.country && (
-              <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
-            )}
+            <div className="meta-row">
+              {userInfo.profile?.country && (
+                <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
+              )}
+              <p className="info">
+                <strong>登録日:</strong>{' '}
+                <time
+                  title={`${formatJoinedDate(userInfo.history?.joined).detail}（ホバー/タップで詳細）`}
+                  dateTime={userInfo.history?.joined || ''}
+                >
+                  {formatJoinedDate(userInfo.history?.joined).short}
+                </time>
+              </p>
+            </div>
             {userInfo.scratchteam && (
               <p className="info"><strong>ScratchTeams:</strong> はい</p>
             )}
@@ -367,9 +418,6 @@ export default function Home() {
                 <p>{userInfo.profile.status}</p>
               </div>
             )}
-            <p className="info">
-              <strong>登録日:</strong> {userInfo.history?.joined ? new Date(userInfo.history.joined).toLocaleDateString('ja-JP') : '不明'}
-            </p>
           </div>
         )}
 
