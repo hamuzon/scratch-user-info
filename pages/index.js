@@ -304,6 +304,10 @@ export default function Home() {
           margin-bottom: 5px;
         }
 
+        .project-title a:visited {
+          color: #00ffcc;
+        }
+
         .project-image {
           width: 100%;
           height: auto;
@@ -325,8 +329,13 @@ export default function Home() {
           text-decoration: none;
         }
 
+        .username-link:visited {
+          color: #00ffcc;
+        }
+
         .username-link:hover {
           text-decoration: underline;
+          color: #00ffff;
         }
 
         .info {
@@ -362,7 +371,12 @@ export default function Home() {
           word-break: break-all;
         }
 
-        .inline-link:hover {
+        .inline-link:visited {
+          color: #00ffcc;
+        }
+
+        .inline-link:hover,
+        .inline-link:focus-visible {
           color: #00ffff;
         }
 
