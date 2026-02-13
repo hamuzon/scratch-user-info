@@ -126,13 +126,6 @@ export default function Home() {
           color: #00ffcc;
         }
 
-        .helper-text {
-          text-align: center;
-          color: #cfeee9;
-          font-size: 12px;
-          margin-bottom: 16px;
-          line-height: 1.5;
-        }
 
         .form {
           display: flex;
@@ -338,7 +331,6 @@ export default function Home() {
 
       <main className="container">
         <h1 className="title">Scratchユーザー情報表示</h1>
-        <p className="helper-text">ユーザー名・ScratchユーザーURL・APIユーザーURL・Scratch作品URL・TurboWarp作品URL に対応</p>
 
         <form
           className="form"

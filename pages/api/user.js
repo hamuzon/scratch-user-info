@@ -22,9 +22,7 @@ export default async function handler(req, res) {
   try {
     const resolvedUsername = await resolveUsername(rawInput);
     if (!resolvedUsername) {
-      return res.status(400).json({
-        error: 'ユーザー名、ScratchユーザーURL、Scratch APIユーザーURL、Scratch/TurboWarp作品URLを入力してください。',
-      });
+      return res.status(400).json({ error: 'username is required' });
     }
 
     const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
