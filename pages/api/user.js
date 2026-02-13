@@ -76,12 +76,20 @@ async function resolveUsername(input) {
     return getProjectAuthorUsername(turboWarpProjectMatch[1]);
   }
 
-  if (/^[A-Za-z0-9_-]{3,20}$/.test(trimmed)) {
-    return trimmed;
+  const singleSegmentMatch = normalized.match(/^([A-Za-z0-9_-]{3,20})(?:[/?#].*)?$/);
+  if (singleSegmentMatch?.[1]) {
+    const candidate = singleSegmentMatch[1];
+
+    if (/^\d+$/.test(candidate)) {
+      return getProjectAuthorUsername(candidate);
+    }
+
+    return candidate;
   }
 
   return '';
 }
+
 
 async function getProjectAuthorUsername(projectId) {
   const projectRes = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
