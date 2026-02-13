@@ -2,7 +2,16 @@
 import { useState } from 'react';
 import Head from 'next/head';
 
-const TEXT_LINK_PATTERN = /(https?:\/\/[^\s]+)|@([A-Za-z0-9_-]+)/g;
+const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
+const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
+
+const toHref = (value) => {
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return `https://${value}`;
+};
 
 export default function Home() {
   const [username, setUsername] = useState('');
@@ -139,7 +148,19 @@ export default function Home() {
     while ((match = TEXT_LINK_PATTERN.exec(text)) !== null) {
       const matchText = match[0];
       const matchStart = match.index;
-      const matchEnd = matchStart + matchText.length;
+      let matchEnd = matchStart + matchText.length;
+
+      let trailing = '';
+      let tokenText = matchText;
+
+      if (match[1]) {
+        const trailingMatch = matchText.match(TRAILING_PUNCTUATION_PATTERN);
+        if (trailingMatch?.[0]) {
+          trailing = trailingMatch[0];
+          tokenText = matchText.slice(0, -trailing.length);
+          matchEnd -= trailing.length;
+        }
+      }
 
       if (matchStart > lastIndex) {
         parts.push(text.slice(lastIndex, matchStart));
@@ -147,10 +168,14 @@ export default function Home() {
 
       if (match[1]) {
         parts.push(
-          <a key={`${matchStart}-url`} href={match[1]} target="_blank" rel="noopener noreferrer" className="inline-link">
-            {match[1]}
+          <a key={`${matchStart}-url`} href={toHref(tokenText)} target="_blank" rel="noopener noreferrer" className="inline-link">
+            {tokenText}
           </a>
         );
+
+        if (trailing) {
+          parts.push(trailing);
+        }
       } else if (match[2]) {
         const mention = match[2];
         parts.push(
@@ -298,14 +323,27 @@ export default function Home() {
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: #00ffcc;
-          text-decoration: none;
+          color: #fff;
+          text-decoration-line: underline;
+          text-decoration-thickness: from-font;
+          text-underline-offset: 3px;
+          text-decoration-color: #fff;
           display: block;
           margin-bottom: 5px;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .project-title a:visited {
-          color: #00ffcc;
+          color: #fff;
+        }
+
+        .project-title a:hover,
+        .project-title a:focus-visible,
+        .project-title a:active {
+          color: #fff;
+          text-decoration-thickness: 2px;
+          text-decoration-color: #fff;
         }
 
         .project-image {
@@ -325,19 +363,25 @@ export default function Home() {
         }
 
         .username-link {
-          color: #00ffcc;
-          text-decoration: none;
+          color: #fff;
+          text-decoration-line: underline;
+          text-decoration-thickness: from-font;
+          text-underline-offset: 2px;
+          text-decoration-color: #fff;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .username-link:visited {
-          color: #00ffcc;
+          color: #fff;
         }
 
         .username-link:hover,
         .username-link:focus-visible,
         .username-link:active {
-          text-decoration: underline;
-          color: #00ffcc;
+          color: #fff;
+          text-decoration-thickness: 2px;
+          text-decoration-color: #fff;
         }
 
         .info {
@@ -368,11 +412,11 @@ export default function Home() {
         }
 
         .inline-link {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
-          text-underline-offset: 2px;
-          text-decoration-color: currentColor;
+          text-underline-offset: 3px;
+          text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -381,9 +425,9 @@ export default function Home() {
         .inline-link:hover,
         .inline-link:focus-visible,
         .inline-link:active {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
-          text-decoration-color: currentColor;
+          text-decoration-color: #fff;
         }
 
         .meta-row {
@@ -451,6 +495,14 @@ export default function Home() {
 
           .project-title a {
             font-size: 16px;
+          }
+
+          .meta-row {
+            gap: 8px;
+          }
+
+          .info {
+            line-height: 1.6;
           }
         }
       `}</style>
