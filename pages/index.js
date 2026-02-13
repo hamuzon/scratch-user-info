@@ -323,11 +323,11 @@ export default function Home() {
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: currentColor;
+          text-decoration-color: #fff;
           display: block;
           margin-bottom: 5px;
           overflow-wrap: anywhere;
@@ -335,14 +335,15 @@ export default function Home() {
         }
 
         .project-title a:visited {
-          color: inherit;
+          color: #fff;
         }
 
         .project-title a:hover,
         .project-title a:focus-visible,
         .project-title a:active {
-          color: inherit;
+          color: #fff;
           text-decoration-thickness: 2px;
+          text-decoration-color: #fff;
         }
 
         .project-image {
@@ -362,24 +363,25 @@ export default function Home() {
         }
 
         .username-link {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 2px;
-          text-decoration-color: currentColor;
+          text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
 
         .username-link:visited {
-          color: inherit;
+          color: #fff;
         }
 
         .username-link:hover,
         .username-link:focus-visible,
         .username-link:active {
-          color: inherit;
+          color: #fff;
           text-decoration-thickness: 2px;
+          text-decoration-color: #fff;
         }
 
         .info {
@@ -410,11 +412,11 @@ export default function Home() {
         }
 
         .inline-link {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: currentColor;
+          text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -423,9 +425,9 @@ export default function Home() {
         .inline-link:hover,
         .inline-link:focus-visible,
         .inline-link:active {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
-          text-decoration-color: currentColor;
+          text-decoration-color: #fff;
         }
 
         .meta-row {
