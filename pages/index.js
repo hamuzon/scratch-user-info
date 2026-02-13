@@ -333,9 +333,11 @@ export default function Home() {
           color: #00ffcc;
         }
 
-        .username-link:hover {
+        .username-link:hover,
+        .username-link:focus-visible,
+        .username-link:active {
           text-decoration: underline;
-          color: #00ffff;
+          color: #00ffcc;
         }
 
         .info {
@@ -371,13 +373,11 @@ export default function Home() {
           word-break: break-all;
         }
 
-        .inline-link:visited {
-          color: #00ffcc;
-        }
-
+        .inline-link:visited,
         .inline-link:hover,
-        .inline-link:focus-visible {
-          color: #00ffff;
+        .inline-link:focus-visible,
+        .inline-link:active {
+          color: #00ffcc;
         }
 
         .meta-row {
