@@ -368,7 +368,7 @@ export default function Home() {
         }
 
         .inline-link {
-          color: #00ffcc;
+          color: inherit;
           text-decoration: underline;
           word-break: break-all;
         }
@@ -377,7 +377,7 @@ export default function Home() {
         .inline-link:hover,
         .inline-link:focus-visible,
         .inline-link:active {
-          color: #00ffcc;
+          color: inherit;
         }
 
         .meta-row {
