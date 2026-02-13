@@ -28,21 +28,64 @@ export default function Home() {
     };
   };
 
-  const getMembershipText = (user) => {
-    if (typeof user?.membership_label === 'string' && user.membership_label.trim()) {
-      return user.membership_label;
+  const normalizeMembershipValue = (value) => {
+    if (typeof value === 'string') {
+      const normalized = value.trim();
+      if (!normalized) {
+        return '';
+      }
+
+      const lowered = normalized.toLowerCase();
+      if (['0', 'false', 'none', 'null', 'undefined', 'new scratcher'].includes(lowered)) {
+        return '';
+      }
+
+      return normalized;
     }
 
-    if (typeof user?.membership_avatar_badge === 'string' && user.membership_avatar_badge.trim()) {
-      return user.membership_avatar_badge;
+    if (typeof value === 'number') {
+      if (value <= 0) {
+        return '';
+      }
+
+      return value === 1 ? 'Scratcher' : `Membership ${value}`;
+    }
+
+    if (typeof value === 'boolean') {
+      return value ? 'Scratcher' : '';
+    }
+
+    if (value && typeof value === 'object') {
+      return (
+        normalizeMembershipValue(value.label) ||
+        normalizeMembershipValue(value.name) ||
+        normalizeMembershipValue(value.text) ||
+        ''
+      );
     }
 
     return '';
   };
 
-  const shouldShowMembership = (user) => {
-    return Boolean(getMembershipText(user));
+  const getMembershipText = (user) => {
+    const candidates = [
+      user?.membership_label,
+      user?.membership_avatar_badge,
+      user?.profile?.membership_label,
+      user?.profile?.membership_avatar_badge,
+    ];
+
+    for (const candidate of candidates) {
+      const parsed = normalizeMembershipValue(candidate);
+      if (parsed) {
+        return parsed;
+      }
+    }
+
+    return '';
   };
+
+  const shouldShowMembership = (user) => Boolean(getMembershipText(user));
 
   const fetchUserInfo = async () => {
     setError('');
