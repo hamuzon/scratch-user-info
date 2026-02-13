@@ -2,7 +2,16 @@
 import { useState } from 'react';
 import Head from 'next/head';
 
-const TEXT_LINK_PATTERN = /(https?:\/\/[^\s]+)|@([A-Za-z0-9_-]+)/g;
+const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
+const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
+
+const toHref = (value) => {
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return `https://${value}`;
+};
 
 export default function Home() {
   const [username, setUsername] = useState('');
@@ -139,7 +148,19 @@ export default function Home() {
     while ((match = TEXT_LINK_PATTERN.exec(text)) !== null) {
       const matchText = match[0];
       const matchStart = match.index;
-      const matchEnd = matchStart + matchText.length;
+      let matchEnd = matchStart + matchText.length;
+
+      let trailing = '';
+      let tokenText = matchText;
+
+      if (match[1]) {
+        const trailingMatch = matchText.match(TRAILING_PUNCTUATION_PATTERN);
+        if (trailingMatch?.[0]) {
+          trailing = trailingMatch[0];
+          tokenText = matchText.slice(0, -trailing.length);
+          matchEnd -= trailing.length;
+        }
+      }
 
       if (matchStart > lastIndex) {
         parts.push(text.slice(lastIndex, matchStart));
@@ -147,10 +168,14 @@ export default function Home() {
 
       if (match[1]) {
         parts.push(
-          <a key={`${matchStart}-url`} href={match[1]} target="_blank" rel="noopener noreferrer" className="inline-link">
-            {match[1]}
+          <a key={`${matchStart}-url`} href={toHref(tokenText)} target="_blank" rel="noopener noreferrer" className="inline-link">
+            {tokenText}
           </a>
         );
+
+        if (trailing) {
+          parts.push(trailing);
+        }
       } else if (match[2]) {
         const mention = match[2];
         parts.push(
