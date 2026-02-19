@@ -447,8 +447,8 @@ export default function Home() {
 
         .inline-link:hover,
         .inline-link:focus-visible {
-          color: #fff;
-          text-decoration-color: #fff;
+          color: #00ffcc;
+          text-decoration-color: #00ffcc;
         }
 
         .inline-link:active {
