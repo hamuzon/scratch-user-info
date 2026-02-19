@@ -216,12 +216,12 @@ export default function Home() {
           font-family: 'Roboto', sans-serif;
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
           margin: 0;
-          min-height: 100vh;
-          color: #fff;
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 20px;
+          min-height: 100vh;
+          color: #fff;
+          padding: 15px;
           box-sizing: border-box;
         }
       `}</style>
@@ -229,22 +229,21 @@ export default function Home() {
       <style jsx>{`
         .container {
           width: 100%;
-          max-width: 1000px;
+          max-width: 600px;
           background-color: rgba(255, 255, 255, 0.1);
-          border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          border-radius: 15px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
           backdrop-filter: blur(10px);
-          padding: 30px;
+          padding: 20px;
+          margin: 20px auto;
           box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
         }
 
         .title {
           font-size: 24px;
           font-weight: bold;
           text-align: center;
-          margin-bottom: 20px;
+          margin-bottom: 8px;
           color: #00ffcc;
         }
 
@@ -254,14 +253,13 @@ export default function Home() {
           flex-wrap: wrap;
           align-items: center;
           justify-content: center;
-          gap: 15px;
-          width: 100%;
+          gap: 10px;
         }
 
         input {
           flex: 1;
           min-width: 200px;
-          padding: 12px 15px;
+          padding: 12px;
           font-size: 16px;
           color: #fff;
           border: 1px solid #00ffcc;
@@ -279,13 +277,13 @@ export default function Home() {
 
         .button-group {
           display: flex;
-          gap: 15px;
+          gap: 10px;
           flex-shrink: 0;
         }
 
         button {
-          padding: 12px 24px;
-          font-size: 15px;
+          padding: 10px 20px;
+          font-size: 14px;
           font-weight: bold;
           color: #fff;
           border: none;
@@ -311,54 +309,36 @@ export default function Home() {
           background: linear-gradient(135deg, #ff6f7c, #ff4b5c);
         }
 
-        .projects-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          width: 100%;
-          align-items: center;
-          gap: 20px;
-          margin-top: 30px;
-        }
-
         .project {
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(0, 255, 204, 0.3);
-          border-radius: 12px;
+          border-radius: 10px;
           padding: 15px;
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          height: 100%;
-          box-sizing: border-box;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+          word-wrap: break-word;
+          overflow: hidden;
         }
 
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: #fff;
-          text-decoration-line: underline;
-          text-decoration-thickness: from-font;
-          text-underline-offset: 3px;
+          color: inherit;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          text-decoration-color: inherit;
           display: block;
           margin-bottom: 5px;
           overflow-wrap: anywhere;
           word-break: break-word;
-          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
-        .project-title a:visited {
-           color: #fff;
-        }
-
+        .project-title a:visited,
         .project-title a:hover,
-        .project-title a:focus-visible {
-          color: #fff;
-          text-decoration-color: #fff;
-        }
-
+        .project-title a:focus-visible,
         .project-title a:active {
-          transform: translateY(1px);
-          color: #fff;
+          color: inherit;
+          text-decoration-color: inherit;
         }
 
         .project-image {
@@ -366,7 +346,7 @@ export default function Home() {
           height: auto;
           aspect-ratio: 4 / 3;
           object-fit: cover;
-          border-radius: 6px;
+          border-radius: 8px;
           border: 2px solid #00ffcc;
           margin-top: 10px;
           display: block;
@@ -378,35 +358,27 @@ export default function Home() {
         }
 
         .username-link {
-          color: #fff;
-          text-decoration-line: underline;
-          text-decoration-thickness: from-font;
-          text-underline-offset: 2px;
+          color: inherit;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          text-decoration-color: inherit;
           overflow-wrap: anywhere;
           word-break: break-word;
-          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
-        .username-link:visited {
-          color: #fff;
-        }
-
+        .username-link:visited,
         .username-link:hover,
-        .username-link:focus-visible {
-          color: #fff;
-          text-decoration-color: #fff;
-        }
-
+        .username-link:focus-visible,
         .username-link:active {
-          transform: translateY(1px);
+          color: inherit;
+          text-decoration-color: inherit;
         }
 
         .info {
-          font-size: 13px;
+          font-size: 14px;
           color: #e0e0e0;
           margin-top: 10px;
-          flex-grow: 1;
-          line-height: 1.5;
+          line-height: 1.7;
         }
 
         .profile-section {
@@ -420,38 +392,31 @@ export default function Home() {
         .profile-section strong {
           color: #00ffcc;
           display: block;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
         }
 
         .profile-section p {
           margin: 0;
           white-space: pre-wrap;
           word-break: break-word;
-          overflow-wrap: anywhere;
+          line-height: 1.7;
         }
 
         .inline-link {
-          color: #fff;
-          text-decoration-line: underline;
-          text-decoration-thickness: from-font;
-          text-underline-offset: 3px;
+          color: inherit;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          text-decoration-color: inherit;
           overflow-wrap: anywhere;
           word-break: break-word;
-          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
-        .inline-link:visited {
-          color: #fff;
-        }
-
+        .inline-link:visited,
         .inline-link:hover,
-        .inline-link:focus-visible {
-          color: #00ffcc;
-          text-decoration-color: #00ffcc;
-        }
-
+        .inline-link:focus-visible,
         .inline-link:active {
-          transform: translateY(1px);
+          color: inherit;
+          text-decoration-color: inherit;
         }
 
         .meta-row {
@@ -467,17 +432,24 @@ export default function Home() {
 
         .usage, .description {
           margin-top: 15px;
-          padding: 12px;
+          padding: 15px;
           border-radius: 8px;
           border: 1px solid rgba(0, 255, 204, 0.2);
           background-color: rgba(255, 255, 255, 0.05);
           color: #fff;
-          font-size: 13px;
+          font-size: 14px;
+        }
+
+        .usage p, .description p {
+          margin: 5px 0 0 0;
+          white-space: pre-wrap;
+          word-break: break-word;
+          line-height: 1.7;
         }
 
         .action-buttons {
           display: flex;
-          gap: 12px;
+          gap: 10px;
           margin-top: 15px;
         }
 
@@ -494,30 +466,15 @@ export default function Home() {
           background: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
-        .user-info-container {
-          margin-top: 25px;
-          border-bottom: 1px solid rgba(0, 255, 204, 0.2);
-          padding-bottom: 20px;
-          animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 600px) {
+        @media (max-width: 500px) {
           .container {
-            padding: 20px;
-            width: 100%;
+            padding: 15px;
+            margin: 10px auto;
           }
 
           .form {
             flex-direction: column;
-          }
-
-          input {
-            width: 100%;
+            align-items: stretch;
           }
 
           .button-group {
@@ -525,8 +482,14 @@ export default function Home() {
           }
 
           .button-group button {
-            width: 100%;
+            flex: 1;
           }
+
+          .title {
+            font-size: 20px;
+          }
+
+          .project-title a {
             font-size: 16px;
           }
 
@@ -537,13 +500,11 @@ export default function Home() {
           .info {
             line-height: 1.6;
           }
-
-          .action-buttons {
-            flex-direction: column;
-          }
         }
-`}</style>
+      `}</style>
+
       <main className="container">
+        <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form
           className="form"
@@ -578,7 +539,7 @@ export default function Home() {
         )}
 
         {userInfo && (
-          <div className="user-info-container">
+          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
             <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
             <p className="info">
               <strong>ユーザー名:</strong>{' '}
@@ -626,7 +587,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="projects-grid">
+        <div style={{ marginTop: 25 }}>
           {projects.length > 0 &&
             projects.map((project) => (
               <div key={project.id} className="project">
@@ -674,14 +635,14 @@ export default function Home() {
                 {project.instructions && (
                   <div className="usage">
                     <strong>使い方:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderTextWithLinks(project.instructions)}</p>
+                    <p>{renderTextWithLinks(project.instructions)}</p>
                   </div>
                 )}
 
                 {project.description && (
                   <div className="description">
                     <strong>メモとクレジット:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderTextWithLinks(project.description)}</p>
+                    <p>{renderTextWithLinks(project.description)}</p>
                   </div>
                 )}
               </div>
