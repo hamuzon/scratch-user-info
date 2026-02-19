@@ -333,7 +333,7 @@ export default function Home() {
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
@@ -346,18 +346,18 @@ export default function Home() {
         }
 
         .project-title a:visited {
-          color: inherit;
+          color: #fff;
         }
 
         .project-title a:hover,
         .project-title a:focus-visible {
-          color: #00ffcc;
-          text-decoration-color: #00ffcc;
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         .project-title a:active {
           transform: translateY(1px);
-          color: #009999;
+          color: #fff;
         }
 
         .project-image {
@@ -377,7 +377,7 @@ export default function Home() {
         }
 
         .username-link {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 2px;
@@ -388,13 +388,13 @@ export default function Home() {
         }
 
         .username-link:visited {
-          color: inherit;
+          color: #fff;
         }
 
         .username-link:hover,
         .username-link:focus-visible {
-          color: #00ffcc;
-          text-decoration-color: #00ffcc;
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         .username-link:active {
@@ -427,10 +427,11 @@ export default function Home() {
           margin: 0;
           white-space: pre-wrap;
           word-break: break-word;
+          overflow-wrap: anywhere;
         }
 
         .inline-link {
-          color: inherit;
+          color: #fff;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
@@ -441,13 +442,13 @@ export default function Home() {
         }
 
         .inline-link:visited {
-          color: inherit;
+          color: #fff;
         }
 
         .inline-link:hover,
         .inline-link:focus-visible {
-          color: #00ffcc;
-          text-decoration-color: #00ffcc;
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         .inline-link:active {
@@ -682,14 +683,14 @@ export default function Home() {
                 {project.instructions && (
                   <div className="usage">
                     <strong>使い方:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(project.instructions)}</p>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderTextWithLinks(project.instructions)}</p>
                   </div>
                 )}
 
                 {project.description && (
                   <div className="description">
                     <strong>メモとクレジット:</strong>
-                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(project.description)}</p>
+                    <p style={{ margin: '5px 0 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderTextWithLinks(project.description)}</p>
                   </div>
                 )}
               </div>
