@@ -314,6 +314,8 @@ export default function Home() {
         .projects-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          width: 100%;
+          align-items: center;
           gap: 20px;
           margin-top: 30px;
         }
@@ -323,9 +325,9 @@ export default function Home() {
           border: 1px solid rgba(0, 255, 204, 0.3);
           border-radius: 12px;
           padding: 15px;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
           display: flex;
           flex-direction: column;
+          width: 100%;
           height: 100%;
           box-sizing: border-box;
         }
@@ -337,7 +339,6 @@ export default function Home() {
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: inherit;
           display: block;
           margin-bottom: 5px;
           overflow-wrap: anywhere;
@@ -346,7 +347,7 @@ export default function Home() {
         }
 
         .project-title a:visited {
-          color: #fff;
+           color: #fff;
         }
 
         .project-title a:hover,
@@ -381,7 +382,6 @@ export default function Home() {
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 2px;
-          text-decoration-color: inherit;
           overflow-wrap: anywhere;
           word-break: break-word;
           transition: color 0.2s ease, text-decoration-color 0.2s ease;
@@ -435,7 +435,6 @@ export default function Home() {
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: inherit;
           overflow-wrap: anywhere;
           word-break: break-word;
           transition: color 0.2s ease, text-decoration-color 0.2s ease;
@@ -528,12 +527,6 @@ export default function Home() {
           .button-group button {
             width: 100%;
           }
-
-          .title {
-            font-size: 20px;
-          }
-
-          .project-title a {
             font-size: 16px;
           }
 
@@ -551,7 +544,6 @@ export default function Home() {
         }
 `}</style>
       <main className="container">
-        <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form
           className="form"
