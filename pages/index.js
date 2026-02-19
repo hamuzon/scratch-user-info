@@ -332,18 +332,22 @@ export default function Home() {
           margin-bottom: 5px;
           overflow-wrap: anywhere;
           word-break: break-word;
+          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
         .project-title a:visited {
-          color: #fff;
+          color: #e0e0e0;
         }
 
         .project-title a:hover,
-        .project-title a:focus-visible,
+        .project-title a:focus-visible {
+          color: #00ffcc;
+          text-decoration-color: #00ffcc;
+        }
+
         .project-title a:active {
-          color: #fff;
-          text-decoration-thickness: 2px;
-          text-decoration-color: #fff;
+          transform: translateY(1px);
+          color: #009999;
         }
 
         .project-image {
@@ -370,18 +374,21 @@ export default function Home() {
           text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
+          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
         .username-link:visited {
-          color: #fff;
+          color: #e0e0e0;
         }
 
         .username-link:hover,
-        .username-link:focus-visible,
+        .username-link:focus-visible {
+          color: #00ffcc;
+          text-decoration-color: #00ffcc;
+        }
+
         .username-link:active {
-          color: #fff;
-          text-decoration-thickness: 2px;
-          text-decoration-color: #fff;
+          transform: translateY(1px);
         }
 
         .info {
@@ -419,15 +426,21 @@ export default function Home() {
           text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
+          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
-        .inline-link:visited,
+        .inline-link:visited {
+          color: #e0e0e0;
+        }
+
         .inline-link:hover,
-        .inline-link:focus-visible,
+        .inline-link:focus-visible {
+          color: #00ffcc;
+          text-decoration-color: #00ffcc;
+        }
+
         .inline-link:active {
-          color: #fff;
-          text-decoration-line: underline;
-          text-decoration-color: #fff;
+          transform: translateY(1px);
         }
 
         .meta-row {
