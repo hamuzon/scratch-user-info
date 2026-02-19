@@ -5,13 +5,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  let body = req.body;
-  if (typeof body === 'string') {
-    try {
-      body = JSON.parse(body);
-    } catch {
-      return res.status(400).json({ error: 'Invalid JSON' });
-    }
+  const body = await parseRequestBody(req, res);
+  if (!body) {
+    return;
   }
 
   const rawInput = String(body.username || '').trim();
@@ -47,6 +43,42 @@ export default async function handler(req, res) {
   } catch {
     return res.status(500).json({ error: 'Internal server error' });
   }
+}
+
+async function parseRequestBody(req, res) {
+  let body = req.body;
+
+  if (body == null) {
+    body = await readRawBody(req);
+  }
+
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body);
+    } catch {
+      res.status(400).json({ error: 'Invalid JSON' });
+      return null;
+    }
+  }
+
+  if (body && typeof body === 'object') {
+    return body;
+  }
+
+  return {};
+}
+
+async function readRawBody(req) {
+  if (!req || typeof req.on !== 'function') {
+    return '';
+  }
+
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
 }
 
 async function resolveUsername(input) {

@@ -1,6 +1,7 @@
 // pages/index.js
 import { useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -91,6 +92,7 @@ const getMembershipText = (user) => {
 const shouldShowMembership = (user) => Boolean(getMembershipText(user));
 
 export default function Home() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
@@ -111,7 +113,8 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch('/api/user', {
+      const apiPath = `${router.basePath || ''}/api/user`;
+      const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
