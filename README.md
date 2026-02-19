@@ -15,3 +15,9 @@ URL-2
 
 URL-3  
 <https://scratch.hamusata.f5.si/>
+
+## Deployメモ（Next.js / Cloudflare Workers）
+
+- ルート配下以外で公開する場合（例: `https://example.com/scratch-user-info/`）は、`NEXT_PUBLIC_BASE_PATH` を設定してください。
+- `next.config.mjs` で `basePath` / `assetPrefix` に同じ値が反映されます。
+- フロント側の API 呼び出しは `router.basePath` を使っているので、Cloudflare Workers 上のサブパス配信でも `/api/user` が正しい URL になります。
