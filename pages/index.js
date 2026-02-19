@@ -323,10 +323,10 @@ export default function Home() {
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: inherit;
+          color: #fff;
           text-decoration: underline;
           text-underline-offset: 4px;
-          text-decoration-color: inherit;
+          text-decoration-color: #fff;
           display: block;
           margin-bottom: 5px;
           overflow-wrap: anywhere;
@@ -337,8 +337,8 @@ export default function Home() {
         .project-title a:hover,
         .project-title a:focus-visible,
         .project-title a:active {
-          color: inherit;
-          text-decoration-color: inherit;
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         .project-image {
@@ -358,10 +358,10 @@ export default function Home() {
         }
 
         .username-link {
-          color: inherit;
+          color: #fff;
           text-decoration: underline;
           text-underline-offset: 4px;
-          text-decoration-color: inherit;
+          text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -370,8 +370,8 @@ export default function Home() {
         .username-link:hover,
         .username-link:focus-visible,
         .username-link:active {
-          color: inherit;
-          text-decoration-color: inherit;
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         .info {
@@ -403,10 +403,10 @@ export default function Home() {
         }
 
         .inline-link {
-          color: inherit;
+          color: #fff;
           text-decoration: underline;
           text-underline-offset: 4px;
-          text-decoration-color: inherit;
+          text-decoration-color: #fff;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -415,8 +415,8 @@ export default function Home() {
         .inline-link:hover,
         .inline-link:focus-visible,
         .inline-link:active {
-          color: inherit;
-          text-decoration-color: inherit;
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         .meta-row {
