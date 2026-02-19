@@ -217,8 +217,6 @@ export default function Home() {
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
           margin: 0;
           display: flex;
-          justify-content: center;
-          align-items: center;
           min-height: 100vh;
           color: #fff;
           padding: 15px;
@@ -235,7 +233,7 @@ export default function Home() {
           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
           backdrop-filter: blur(10px);
           padding: 20px;
-          margin: 20px auto;
+          margin: auto;
           box-sizing: border-box;
         }
 
@@ -323,11 +321,11 @@ export default function Home() {
         .project-title a {
           font-size: 18px;
           font-weight: bold;
-          color: #fff;
+          color: inherit;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: #fff;
+          text-decoration-color: inherit;
           display: block;
           margin-bottom: 5px;
           overflow-wrap: anywhere;
@@ -336,7 +334,7 @@ export default function Home() {
         }
 
         .project-title a:visited {
-          color: #e0e0e0;
+          color: inherit;
         }
 
         .project-title a:hover,
@@ -367,18 +365,18 @@ export default function Home() {
         }
 
         .username-link {
-          color: #fff;
+          color: inherit;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 2px;
-          text-decoration-color: #fff;
+          text-decoration-color: inherit;
           overflow-wrap: anywhere;
           word-break: break-word;
           transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
         .username-link:visited {
-          color: #e0e0e0;
+          color: inherit;
         }
 
         .username-link:hover,
@@ -419,18 +417,18 @@ export default function Home() {
         }
 
         .inline-link {
-          color: #fff;
+          color: inherit;
           text-decoration-line: underline;
           text-decoration-thickness: from-font;
           text-underline-offset: 3px;
-          text-decoration-color: #fff;
+          text-decoration-color: inherit;
           overflow-wrap: anywhere;
           word-break: break-word;
           transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
 
         .inline-link:visited {
-          color: #e0e0e0;
+          color: inherit;
         }
 
         .inline-link:hover,
@@ -486,7 +484,7 @@ export default function Home() {
         @media (max-width: 500px) {
           .container {
             padding: 15px;
-            margin: 10px auto;
+            margin: auto;
           }
 
           .form {
@@ -516,6 +514,10 @@ export default function Home() {
 
           .info {
             line-height: 1.6;
+          }
+
+          .action-buttons {
+            flex-direction: column;
           }
         }
       `}</style>
