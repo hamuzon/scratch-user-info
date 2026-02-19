@@ -216,10 +216,12 @@ export default function Home() {
           font-family: 'Roboto', sans-serif;
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
           margin: 0;
-          display: flex;
           min-height: 100vh;
           color: #fff;
-          padding: 15px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px;
           box-sizing: border-box;
         }
       `}</style>
@@ -227,21 +229,22 @@ export default function Home() {
       <style jsx>{`
         .container {
           width: 100%;
-          max-width: 600px;
+          max-width: 1000px;
           background-color: rgba(255, 255, 255, 0.1);
-          border-radius: 15px;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+          border-radius: 16px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
           backdrop-filter: blur(10px);
-          padding: 20px;
-          margin: auto;
+          padding: 30px;
           box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
         }
 
         .title {
           font-size: 24px;
           font-weight: bold;
           text-align: center;
-          margin-bottom: 8px;
+          margin-bottom: 20px;
           color: #00ffcc;
         }
 
@@ -251,13 +254,14 @@ export default function Home() {
           flex-wrap: wrap;
           align-items: center;
           justify-content: center;
-          gap: 10px;
+          gap: 15px;
+          width: 100%;
         }
 
         input {
           flex: 1;
           min-width: 200px;
-          padding: 12px;
+          padding: 12px 15px;
           font-size: 16px;
           color: #fff;
           border: 1px solid #00ffcc;
@@ -275,13 +279,13 @@ export default function Home() {
 
         .button-group {
           display: flex;
-          gap: 10px;
+          gap: 15px;
           flex-shrink: 0;
         }
 
         button {
-          padding: 10px 20px;
-          font-size: 14px;
+          padding: 12px 24px;
+          font-size: 15px;
           font-weight: bold;
           color: #fff;
           border: none;
@@ -307,15 +311,23 @@ export default function Home() {
           background: linear-gradient(135deg, #ff6f7c, #ff4b5c);
         }
 
+        .projects-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 20px;
+          margin-top: 30px;
+        }
+
         .project {
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(0, 255, 204, 0.3);
-          border-radius: 10px;
+          border-radius: 12px;
           padding: 15px;
-          margin-bottom: 20px;
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-          word-wrap: break-word;
-          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          box-sizing: border-box;
         }
 
         .project-title a {
@@ -353,7 +365,7 @@ export default function Home() {
           height: auto;
           aspect-ratio: 4 / 3;
           object-fit: cover;
-          border-radius: 8px;
+          border-radius: 6px;
           border: 2px solid #00ffcc;
           margin-top: 10px;
           display: block;
@@ -393,12 +405,13 @@ export default function Home() {
           font-size: 13px;
           color: #e0e0e0;
           margin-top: 10px;
+          flex-grow: 1;
           line-height: 1.5;
         }
 
         .profile-section {
           margin-top: 14px;
-          padding: 12px;
+          padding: 15px;
           border-radius: 10px;
           border: 1px solid rgba(0, 255, 204, 0.25);
           background: rgba(255, 255, 255, 0.06);
@@ -464,7 +477,7 @@ export default function Home() {
 
         .action-buttons {
           display: flex;
-          gap: 10px;
+          gap: 12px;
           margin-top: 15px;
         }
 
@@ -481,15 +494,30 @@ export default function Home() {
           background: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
-        @media (max-width: 500px) {
+        .user-info-container {
+          margin-top: 25px;
+          border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+          padding-bottom: 20px;
+          animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
           .container {
-            padding: 15px;
-            margin: auto;
+            padding: 20px;
+            width: 100%;
           }
 
           .form {
             flex-direction: column;
-            align-items: stretch;
+          }
+
+          input {
+            width: 100%;
           }
 
           .button-group {
@@ -497,7 +525,7 @@ export default function Home() {
           }
 
           .button-group button {
-            flex: 1;
+            width: 100%;
           }
 
           .title {
@@ -558,7 +586,7 @@ export default function Home() {
         )}
 
         {userInfo && (
-          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
+          <div className="user-info-container">
             <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
             <p className="info">
               <strong>ユーザー名:</strong>{' '}
@@ -606,7 +634,7 @@ export default function Home() {
           </div>
         )}
 
-        <div style={{ marginTop: 25 }}>
+        <div className="projects-grid">
           {projects.length > 0 &&
             projects.map((project) => (
               <div key={project.id} className="project">
