@@ -549,8 +549,7 @@ export default function Home() {
             flex-direction: column;
           }
         }
-      `}</style>
-
+`}</style>
       <main className="container">
         <h1 className="title">Scratchユーザー情報表示</h1>
 
