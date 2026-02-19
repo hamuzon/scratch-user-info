@@ -1,9 +1,5 @@
 {
   "name": "scratch-user-info",
   "compatibility_date": "2026-02-19",
-  "main": "src/worker.js",
-  "assets": {
-    "directory": "public",
-    "binding": "ASSETS"
-  }
+  "main": "src/worker.js"
 }

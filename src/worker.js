@@ -3,26 +3,7 @@ const jsonHeaders = {
   'cache-control': 'no-store',
 };
 
-const htmlHeaders = {
-  'content-type': 'text/html; charset=UTF-8',
-  'cache-control': 'no-store',
-};
-
-function renderHome() {
-  return `<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Scratchユーザー情報表示 (Worker API)</title>
-  </head>
-  <body>
-    <h1>Scratchユーザー情報表示</h1>
-    <p>Cloudflare Worker 版の API エンドポイントです。</p>
-    <p><code>POST /api/user</code> に <code>{"username":"..."}</code> を送信してください。</p>
-  </body>
-</html>`;
-}
+const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
 
 function formatDatetime(datetimeString) {
   try {
@@ -136,25 +117,20 @@ async function handleApiRequest(request) {
   });
 }
 
+async function proxyToNext(request) {
+  const url = new URL(request.url);
+  const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
+  return fetch(new Request(target.toString(), request));
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request) {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/user') {
       return handleApiRequest(request);
     }
 
-    if (env.ASSETS) {
-      const assetResponse = await env.ASSETS.fetch(request);
-      if (assetResponse.status !== 404) {
-        return assetResponse;
-      }
-    }
-
-    if (url.pathname === '/' || url.pathname === '') {
-      return new Response(renderHome(), { status: 200, headers: htmlHeaders });
-    }
-
-    return new Response('Not Found', { status: 404 });
+    return proxyToNext(request);
   },
 };
