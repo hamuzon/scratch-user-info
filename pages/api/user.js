@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       projects = await projectsRes.json();
       projects = projects.map((project) => ({
         ...project,
-        published_date: formatDatetime(project.history?.created),
+        published_date: formatDatetime(project.history?.shared),
         modified_date: formatDatetime(project.history?.modified),
       }));
     }

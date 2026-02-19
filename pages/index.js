@@ -9,102 +9,104 @@ const toHref = (value) => {
   if (/^https?:\/\//i.test(value)) {
     return value;
   }
-
   return `https://${value}`;
 };
+
+const formatJoinedDate = (joined) => {
+  if (!joined) {
+    return { short: '不明', detail: '不明' };
+  }
+
+  const date = new Date(joined);
+  return {
+    short: date.toLocaleDateString('ja-JP'),
+    detail: date.toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }),
+  };
+};
+
+const normalizeMembershipValue = (value) => {
+  if (typeof value === 'string') {
+    const normalized = value.trim();
+    if (!normalized) {
+      return '';
+    }
+
+    const lowered = normalized.toLowerCase();
+    if (['0', 'false', 'none', 'null', 'undefined', 'new scratcher'].includes(lowered)) {
+      return '';
+    }
+
+    return normalized;
+  }
+
+  if (typeof value === 'number') {
+    if (value <= 0) {
+      return '';
+    }
+    return value === 1 ? 'Scratcher' : `Membership ${value}`;
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'Scratcher' : '';
+  }
+
+  if (value && typeof value === 'object') {
+    return (
+      normalizeMembershipValue(value.label) ||
+      normalizeMembershipValue(value.name) ||
+      normalizeMembershipValue(value.text) ||
+      ''
+    );
+  }
+
+  return '';
+};
+
+const getMembershipText = (user) => {
+  const candidates = [
+    user?.membership_label,
+    user?.membership_avatar_badge,
+    user?.profile?.membership_label,
+    user?.profile?.membership_avatar_badge,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = normalizeMembershipValue(candidate);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  return '';
+};
+
+const shouldShowMembership = (user) => Boolean(getMembershipText(user));
 
 export default function Home() {
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const formatJoinedDate = (joined) => {
-    if (!joined) {
-      return { short: '不明', detail: '不明' };
-    }
-
-    const date = new Date(joined);
-    return {
-      short: date.toLocaleDateString('ja-JP'),
-      detail: date.toLocaleString('ja-JP', {
-        timeZone: 'Asia/Tokyo',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }),
-    };
-  };
-
-  const normalizeMembershipValue = (value) => {
-    if (typeof value === 'string') {
-      const normalized = value.trim();
-      if (!normalized) {
-        return '';
-      }
-
-      const lowered = normalized.toLowerCase();
-      if (['0', 'false', 'none', 'null', 'undefined', 'new scratcher'].includes(lowered)) {
-        return '';
-      }
-
-      return normalized;
-    }
-
-    if (typeof value === 'number') {
-      if (value <= 0) {
-        return '';
-      }
-
-      return value === 1 ? 'Scratcher' : `Membership ${value}`;
-    }
-
-    if (typeof value === 'boolean') {
-      return value ? 'Scratcher' : '';
-    }
-
-    if (value && typeof value === 'object') {
-      return (
-        normalizeMembershipValue(value.label) ||
-        normalizeMembershipValue(value.name) ||
-        normalizeMembershipValue(value.text) ||
-        ''
-      );
-    }
-
-    return '';
-  };
-
-  const getMembershipText = (user) => {
-    const candidates = [
-      user?.membership_label,
-      user?.membership_avatar_badge,
-      user?.profile?.membership_label,
-      user?.profile?.membership_avatar_badge,
-    ];
-
-    for (const candidate of candidates) {
-      const parsed = normalizeMembershipValue(candidate);
-      if (parsed) {
-        return parsed;
-      }
-    }
-
-    return '';
-  };
-
-  const shouldShowMembership = (user) => Boolean(getMembershipText(user));
-
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = async (e) => {
+    e.preventDefault();
     setError('');
     setUserInfo(null);
     setProjects([]);
+    setLoading(true);
 
     if (!username) {
       setError('ユーザー名を入力してください。');
+      setLoading(false);
       return;
     }
 
@@ -114,7 +116,6 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
       });
-
       const data = await res.json();
 
       if (res.ok) {
@@ -126,6 +127,8 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       setError('通信エラーが発生しました。');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,22 +137,23 @@ export default function Home() {
     setProjects([]);
     setUserInfo(null);
     setError('');
+    setLoading(false);
   };
 
   const renderTextWithLinks = (text) => {
     if (!text) {
-      return '';
+      return null;
     }
 
     const parts = [];
     let lastIndex = 0;
     let match;
+    TEXT_LINK_PATTERN.lastIndex = 0;
 
     while ((match = TEXT_LINK_PATTERN.exec(text)) !== null) {
       const matchText = match[0];
       const matchStart = match.index;
       let matchEnd = matchStart + matchText.length;
-
       let trailing = '';
       let tokenText = matchText;
 
@@ -168,7 +172,13 @@ export default function Home() {
 
       if (match[1]) {
         parts.push(
-          <a key={`${matchStart}-url`} href={toHref(tokenText)} target="_blank" rel="noopener noreferrer" className="inline-link">
+          <a
+            key={`${matchStart}-link`}
+            href={toHref(tokenText)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-link"
+          >
             {tokenText}
           </a>
         );
@@ -197,8 +207,6 @@ export default function Home() {
     if (lastIndex < text.length) {
       parts.push(text.slice(lastIndex));
     }
-
-    TEXT_LINK_PATTERN.lastIndex = 0;
 
     return parts;
   };
@@ -246,7 +254,6 @@ export default function Home() {
           margin-bottom: 8px;
           color: #00ffcc;
         }
-
 
         .form {
           display: flex;
@@ -320,25 +327,62 @@ export default function Home() {
           overflow: hidden;
         }
 
-        .project-title a {
-          font-size: 18px;
-          font-weight: bold;
+        /* 全体のリンク設定 */
+        a,
+        a:-webkit-any-link {
           color: #fff;
           text-decoration: underline;
           text-underline-offset: 4px;
           text-decoration-color: #fff;
-          display: block;
-          margin-bottom: 5px;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
 
-        .project-title a:visited,
-        .project-title a:hover,
-        .project-title a:focus-visible,
-        .project-title a:active {
+        a:visited,
+        a:hover,
+        a:active {
           color: #fff;
           text-decoration-color: #fff;
+        }
+
+        /* 個別のリンク設定 */
+        .project-title a,
+        .project-title a:-webkit-any-link {
+          font-size: 18px;
+          font-weight: bold;
+          display: block;
+          margin-bottom: 5px;
+          color: #fff;
+        }
+
+        .project-title a:visited,
+        .project-title a:hover,
+        .project-title a:active {
+          color: #fff;
+        }
+
+        /* 生成された URL / @メンションリンク */
+        .inline-link,
+        .username-link,
+        .inline-link:-webkit-any-link,
+        .username-link:-webkit-any-link {
+          color: #fff; /* 白色固定 */
+          text-decoration: underline;
+          text-underline-offset: 4px;
+        }
+
+        .inline-link:visited,
+        .inline-link:hover,
+        .inline-link:active,
+        .username-link:visited,
+        .username-link:hover,
+        .username-link:active {
+          color: #fff; 
+          text-decoration-color: #fff; 
+        }
+
+        a:-webkit-any-link {
+          color: #fff;
         }
 
         .project-image {
@@ -355,23 +399,7 @@ export default function Home() {
         .project-image-link {
           display: block;
           margin-top: 10px;
-        }
-
-        .username-link {
-          color: #fff;
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          text-decoration-color: #fff;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        .username-link:visited,
-        .username-link:hover,
-        .username-link:focus-visible,
-        .username-link:active {
-          color: #fff;
-          text-decoration-color: #fff;
+          text-decoration: none;
         }
 
         .info {
@@ -402,23 +430,6 @@ export default function Home() {
           line-height: 1.7;
         }
 
-        .inline-link {
-          color: #fff;
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          text-decoration-color: #fff;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        .inline-link:visited,
-        .inline-link:hover,
-        .inline-link:focus-visible,
-        .inline-link:active {
-          color: #fff;
-          text-decoration-color: #fff;
-        }
-
         .meta-row {
           display: flex;
           flex-wrap: wrap;
@@ -430,7 +441,8 @@ export default function Home() {
           margin-top: 10px;
         }
 
-        .usage, .description {
+        .usage,
+        .description {
           margin-top: 15px;
           padding: 15px;
           border-radius: 8px;
@@ -440,7 +452,8 @@ export default function Home() {
           font-size: 14px;
         }
 
-        .usage p, .description p {
+        .usage p,
+        .description p {
           margin: 5px 0 0 0;
           white-space: pre-wrap;
           word-break: break-word;
@@ -506,13 +519,7 @@ export default function Home() {
       <main className="container">
         <h1 className="title">Scratchユーザー情報表示</h1>
 
-        <form
-          className="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            fetchUserInfo();
-          }}
-        >
+        <form className="form" onSubmit={fetchUserInfo}>
           <input
             type="text"
             placeholder="ユーザー名またはURLを入力"
@@ -522,8 +529,8 @@ export default function Home() {
           />
 
           <div className="button-group">
-            <button type="submit" className="submit-button">
-              情報取得
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? '取得中...' : '情報取得'}
             </button>
 
             <button type="button" onClick={reset} className="reset-button">
@@ -541,6 +548,7 @@ export default function Home() {
         {userInfo && (
           <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
             <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
+            
             <p className="info">
               <strong>ユーザー名:</strong>{' '}
               <a
@@ -552,9 +560,12 @@ export default function Home() {
                 @{userInfo.username}
               </a>
             </p>
+
             <div className="meta-row">
               {userInfo.profile?.country && (
-                <p className="info"><strong>国:</strong> {userInfo.profile.country}</p>
+                <p className="info">
+                  <strong>国:</strong> {userInfo.profile.country}
+                </p>
               )}
               <p className="info">
                 <strong>登録日:</strong>{' '}
@@ -566,18 +577,26 @@ export default function Home() {
                 </time>
               </p>
             </div>
+
             {userInfo.scratchteam && (
-              <p className="info"><strong>ScratchTeams:</strong> はい</p>
+              <p className="info">
+                <strong>ScratchTeams:</strong> はい
+              </p>
             )}
+
             {shouldShowMembership(userInfo) && (
-              <p className="info"><strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}</p>
+              <p className="info">
+                <strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}
+              </p>
             )}
+
             {userInfo.profile?.bio && (
               <div className="profile-section">
                 <strong>私について / About me</strong>
                 <p>{renderTextWithLinks(userInfo.profile.bio)}</p>
               </div>
             )}
+
             {userInfo.profile?.status && (
               <div className="profile-section">
                 <strong>私が取り組んでいること / What I'm working on</strong>
@@ -592,7 +611,11 @@ export default function Home() {
             projects.map((project) => (
               <div key={project.id} className="project">
                 <div className="project-title">
-                  <a href={`https://scratch.mit.edu/projects/${project.id}`} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={`https://scratch.mit.edu/projects/${project.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {project.title}
                   </a>
                 </div>
@@ -611,8 +634,10 @@ export default function Home() {
                 </a>
 
                 <p className="info">
-                  <strong>ID:</strong> {project.id}<br />
-                  <strong>共有:</strong> {project.published_date}<br />
+                  <strong>ID:</strong> {project.id}
+                  <br />
+                  <strong>共有:</strong> {project.published_date}
+                  <br />
                   <strong>更新:</strong> {project.modified_date}
                 </p>
 
