@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -678,7 +677,6 @@ export default function Home() {
             ))}
         </div>
       </main>
-      <SpeedInsights />
     </>
   );
 }
