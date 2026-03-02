@@ -1,7 +1,6 @@
 // pages/index.js
 import { useState } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -91,8 +90,102 @@ const getMembershipText = (user) => {
 
 const shouldShowMembership = (user) => Boolean(getMembershipText(user));
 
+function formatDatetime(datetimeString) {
+  try {
+    const date = new Date(datetimeString);
+    return date.toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '不明';
+  }
+}
+
+async function getProjectAuthorUsername(projectId) {
+  const projectRes = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
+  if (!projectRes.ok) {
+    return '';
+  }
+
+  const project = await projectRes.json();
+  return project?.author?.username || '';
+}
+
+async function resolveUsername(input) {
+  const trimmed = input.trim();
+  const normalized = trimmed.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/^\/+/, '');
+
+  const scratchUserMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
+  if (scratchUserMatch?.[1]) {
+    return scratchUserMatch[1];
+  }
+
+  const scratchApiUserMatch = normalized.match(/^(?:api\.scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
+  if (scratchApiUserMatch?.[1]) {
+    return scratchApiUserMatch[1];
+  }
+
+  const scratchProjectMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?projects\/(\d+)(?:[/?#].*)?$/i);
+  if (scratchProjectMatch?.[1]) {
+    return getProjectAuthorUsername(scratchProjectMatch[1]);
+  }
+
+  const turboWarpProjectMatch = normalized.match(/^(?:turbowarp\.org\/)?(\d+)(?:[/?#].*)?$/i);
+  if (turboWarpProjectMatch?.[1]) {
+    return getProjectAuthorUsername(turboWarpProjectMatch[1]);
+  }
+
+  const singleSegmentMatch = normalized.match(/^([A-Za-z0-9_-]{3,20})(?:[/?#].*)?$/);
+  if (singleSegmentMatch?.[1]) {
+    const candidate = singleSegmentMatch[1];
+
+    if (/^\d+$/.test(candidate)) {
+      return getProjectAuthorUsername(candidate);
+    }
+
+    return candidate;
+  }
+
+  return '';
+}
+
+async function fetchScratchUserData(rawInput) {
+  const resolvedUsername = await resolveUsername(rawInput);
+  if (!resolvedUsername) {
+    throw new Error('ユーザー名またはURLの形式が正しくありません。');
+  }
+
+  const encodedUsername = encodeURIComponent(resolvedUsername);
+  const [userRes, projectsRes] = await Promise.all([
+    fetch(`https://api.scratch.mit.edu/users/${encodedUsername}`),
+    fetch(`https://api.scratch.mit.edu/users/${encodedUsername}/projects`),
+  ]);
+
+  if (!userRes.ok) {
+    throw new Error('ユーザーが見つかりませんでした。');
+  }
+
+  const userInfo = await userRes.json();
+  let projects = [];
+
+  if (projectsRes.ok) {
+    const rawProjects = await projectsRes.json();
+    projects = rawProjects.map((project) => ({
+      ...project,
+      published_date: formatDatetime(project.history?.shared),
+      modified_date: formatDatetime(project.history?.modified),
+    }));
+  }
+
+  return { userInfo, projects };
+}
+
 export default function Home() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
@@ -113,23 +206,12 @@ export default function Home() {
     }
 
     try {
-      const apiPath = `${router.basePath || ''}/api/user`;
-      const res = await fetch(apiPath, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setUserInfo(data.user_info || null);
-        setProjects(data.projects || []);
-      } else {
-        setError(data.error || 'ユーザー情報の取得に失敗しました。');
-      }
-    } catch (error) {
-      console.error(error);
-      setError('通信エラーが発生しました。');
+      const data = await fetchScratchUserData(username);
+      setUserInfo(data.userInfo || null);
+      setProjects(data.projects || []);
+    } catch (requestError) {
+      console.error(requestError);
+      setError(requestError?.message || 'ユーザー情報の取得に失敗しました。');
     } finally {
       setLoading(false);
     }
@@ -183,7 +265,7 @@ export default function Home() {
             className="inline-link"
           >
             {tokenText}
-          </a>
+          </a>,
         );
 
         if (trailing) {
@@ -200,7 +282,7 @@ export default function Home() {
             className="inline-link"
           >
             @{mention}
-          </a>
+          </a>,
         );
       }
 
@@ -224,7 +306,7 @@ export default function Home() {
 
       <style jsx global>{`
         body {
-          font-family: 'Roboto', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
           margin: 0;
           display: flex;
@@ -268,7 +350,8 @@ export default function Home() {
 
         input {
           flex: 1;
-          min-width: 200px;
+          min-width: 0;
+          width: 100%;
           padding: 12px;
           font-size: 16px;
           color: #fff;
@@ -292,6 +375,7 @@ export default function Home() {
         }
 
         button {
+          min-height: 42px;
           padding: 10px 20px;
           font-size: 14px;
           font-weight: bold;
@@ -305,6 +389,7 @@ export default function Home() {
 
         .submit-button {
           background: linear-gradient(135deg, #00ffcc, #009999);
+          min-width: 96px;
         }
 
         .submit-button:hover {
@@ -313,10 +398,24 @@ export default function Home() {
 
         .reset-button {
           background: linear-gradient(135deg, #ff4b5c, #d42e40);
+          min-width: 96px;
         }
 
         .reset-button:hover {
           background: linear-gradient(135deg, #ff6f7c, #ff4b5c);
+        }
+
+        .status-area {
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: 10px;
+        }
+
+        .results {
+          margin-top: 10px;
+          min-height: 140px;
         }
 
         .project {
@@ -330,7 +429,6 @@ export default function Home() {
           overflow: hidden;
         }
 
-        /* 全体のリンク設定 */
         a,
         a:-webkit-any-link {
           color: #fff;
@@ -348,7 +446,6 @@ export default function Home() {
           text-decoration-color: #fff;
         }
 
-        /* 個別のリンク設定 */
         .project-title a,
         .project-title a:-webkit-any-link {
           font-size: 18px;
@@ -364,12 +461,11 @@ export default function Home() {
           color: #fff;
         }
 
-        /* 生成された URL / @メンションリンク */
         .inline-link,
         .username-link,
         .inline-link:-webkit-any-link,
         .username-link:-webkit-any-link {
-          color: #fff; /* 白色固定 */
+          color: #fff;
           text-decoration: underline;
           text-underline-offset: 4px;
         }
@@ -380,8 +476,8 @@ export default function Home() {
         .username-link:visited,
         .username-link:hover,
         .username-link:active {
-          color: #fff; 
-          text-decoration-color: #fff; 
+          color: #fff;
+          text-decoration-color: #fff;
         }
 
         a:-webkit-any-link {
@@ -397,6 +493,7 @@ export default function Home() {
           border: 2px solid #00ffcc;
           margin-top: 10px;
           display: block;
+          background: rgba(255, 255, 255, 0.08);
         }
 
         .project-image-link {
@@ -516,6 +613,10 @@ export default function Home() {
           .info {
             line-height: 1.6;
           }
+
+          .action-buttons {
+            flex-direction: column;
+          }
         }
       `}</style>
 
@@ -542,139 +643,146 @@ export default function Home() {
           </div>
         </form>
 
-        {error && (
-          <p style={{ color: '#ff4b5c', marginTop: 15, textAlign: 'center', fontSize: '14px' }}>
-            {error}
-          </p>
-        )}
+        <div className="status-area" aria-live="polite">
+          {error && <p style={{ color: '#ff4b5c', margin: 0, textAlign: 'center', fontSize: '14px' }}>{error}</p>}
+          {!error && loading && (
+            <p style={{ color: '#b9fff0', margin: 0, textAlign: 'center', fontSize: '14px' }}>ユーザー情報を取得中です...</p>
+          )}
+        </div>
 
-        {userInfo && (
-          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
-            <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
-            
-            <p className="info">
-              <strong>ユーザー名:</strong>{' '}
-              <a
-                href={`https://scratch.mit.edu/users/${encodeURIComponent(userInfo.username)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="username-link"
-              >
-                @{userInfo.username}
-              </a>
-            </p>
+        <div className="results">
+          {userInfo && (
+            <div style={{ marginTop: 10, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
+              <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
 
-            <div className="meta-row">
-              {userInfo.profile?.country && (
+              <p className="info">
+                <strong>ユーザー名:</strong>{' '}
+                <a
+                  href={`https://scratch.mit.edu/users/${encodeURIComponent(userInfo.username)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="username-link"
+                >
+                  @{userInfo.username}
+                </a>
+              </p>
+
+              <div className="meta-row">
+                {userInfo.profile?.country && (
+                  <p className="info">
+                    <strong>国:</strong> {userInfo.profile.country}
+                  </p>
+                )}
                 <p className="info">
-                  <strong>国:</strong> {userInfo.profile.country}
+                  <strong>登録日:</strong>{' '}
+                  <time
+                    title={`${formatJoinedDate(userInfo.history?.joined).detail}（ホバー/タップで詳細）`}
+                    dateTime={userInfo.history?.joined || ''}
+                  >
+                    {formatJoinedDate(userInfo.history?.joined).short}
+                  </time>
+                </p>
+              </div>
+
+              {userInfo.scratchteam && (
+                <p className="info">
+                  <strong>ScratchTeams:</strong> はい
                 </p>
               )}
-              <p className="info">
-                <strong>登録日:</strong>{' '}
-                <time
-                  title={`${formatJoinedDate(userInfo.history?.joined).detail}（ホバー/タップで詳細）`}
-                  dateTime={userInfo.history?.joined || ''}
-                >
-                  {formatJoinedDate(userInfo.history?.joined).short}
-                </time>
-              </p>
+
+              {shouldShowMembership(userInfo) && (
+                <p className="info">
+                  <strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}
+                </p>
+              )}
+
+              {userInfo.profile?.bio && (
+                <div className="profile-section">
+                  <strong>私について / About me</strong>
+                  <p>{renderTextWithLinks(userInfo.profile.bio)}</p>
+                </div>
+              )}
+
+              {userInfo.profile?.status && (
+                <div className="profile-section">
+                  <strong>私が取り組んでいること / What I'm working on</strong>
+                  <p>{renderTextWithLinks(userInfo.profile.status)}</p>
+                </div>
+              )}
             </div>
+          )}
 
-            {userInfo.scratchteam && (
-              <p className="info">
-                <strong>ScratchTeams:</strong> はい
-              </p>
-            )}
+          <div style={{ marginTop: 25 }}>
+            {projects.length > 0 &&
+              projects.map((project) => (
+                <div key={project.id} className="project">
+                  <div className="project-title">
+                    <a
+                      href={`https://scratch.mit.edu/projects/${project.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {project.title}
+                    </a>
+                  </div>
 
-            {shouldShowMembership(userInfo) && (
-              <p className="info">
-                <strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}
-              </p>
-            )}
-
-            {userInfo.profile?.bio && (
-              <div className="profile-section">
-                <strong>私について / About me</strong>
-                <p>{renderTextWithLinks(userInfo.profile.bio)}</p>
-              </div>
-            )}
-
-            {userInfo.profile?.status && (
-              <div className="profile-section">
-                <strong>私が取り組んでいること / What I'm working on</strong>
-                <p>{renderTextWithLinks(userInfo.profile.status)}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div style={{ marginTop: 25 }}>
-          {projects.length > 0 &&
-            projects.map((project) => (
-              <div key={project.id} className="project">
-                <div className="project-title">
                   <a
                     href={`https://scratch.mit.edu/projects/${project.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="project-image-link"
                   >
-                    {project.title}
+                    <img
+                      src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
+                      alt={project.title}
+                      className="project-image"
+                      width="480"
+                      height="360"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </a>
-                </div>
 
-                <a
-                  href={`https://scratch.mit.edu/projects/${project.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="project-image-link"
-                >
-                  <img
-                    src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
-                    alt={project.title}
-                    className="project-image"
-                  />
-                </a>
+                  <p className="info">
+                    <strong>ID:</strong> {project.id}
+                    <br />
+                    <strong>共有:</strong> {project.published_date}
+                    <br />
+                    <strong>更新:</strong> {project.modified_date}
+                  </p>
 
-                <p className="info">
-                  <strong>ID:</strong> {project.id}
-                  <br />
-                  <strong>共有:</strong> {project.published_date}
-                  <br />
-                  <strong>更新:</strong> {project.modified_date}
-                </p>
+                  <div className="action-buttons">
+                    <button
+                      onClick={() => window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')}
+                      className="scratch-button"
+                    >
+                      Scratch
+                    </button>
 
-                <div className="action-buttons">
-                  <button
-                    onClick={() => window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')}
-                    className="scratch-button"
-                  >
-                    Scratch
-                  </button>
-
-                  <button
-                    onClick={() => window.open(`https://turbowarp.org/${project.id}`, '_blank')}
-                    className="turbowarp-button"
-                  >
-                    TurboWarp
-                  </button>
-                </div>
-
-                {project.instructions && (
-                  <div className="usage">
-                    <strong>使い方:</strong>
-                    <p>{renderTextWithLinks(project.instructions)}</p>
+                    <button
+                      onClick={() => window.open(`https://turbowarp.org/${project.id}`, '_blank')}
+                      className="turbowarp-button"
+                    >
+                      TurboWarp
+                    </button>
                   </div>
-                )}
 
-                {project.description && (
-                  <div className="description">
-                    <strong>メモとクレジット:</strong>
-                    <p>{renderTextWithLinks(project.description)}</p>
-                  </div>
-                )}
-              </div>
-            ))}
+                  {project.instructions && (
+                    <div className="usage">
+                      <strong>使い方:</strong>
+                      <p>{renderTextWithLinks(project.instructions)}</p>
+                    </div>
+                  )}
+
+                  {project.description && (
+                    <div className="description">
+                      <strong>メモとクレジット:</strong>
+                      <p>{renderTextWithLinks(project.description)}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
         </div>
       </main>
     </>
