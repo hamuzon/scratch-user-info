@@ -12,19 +12,11 @@ const normalizeBasePath = (value) => {
   return prefixed.replace(/\/+$/, '');
 };
 
-const isGitHubPagesBuild = process.env.GITHUB_PAGES === 'true';
-const configuredBasePath = process.env.NEXT_PUBLIC_BASE_PATH;
-const basePath = normalizeBasePath(
-  configuredBasePath || (isGitHubPagesBuild ? '/scratch-user-info' : ''),
-);
+const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  images: {
-    unoptimized: true,
-  },
-  basePath: basePath,
+  basePath,
   assetPrefix: basePath || undefined,
 };
 
