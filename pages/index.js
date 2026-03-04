@@ -280,6 +280,18 @@ export default function Home() {
           gap: 10px;
         }
 
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
         input {
           flex: 1;
           min-width: 200px;
@@ -583,9 +595,15 @@ export default function Home() {
         <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form className="form" onSubmit={fetchUserInfo}>
+          <label htmlFor="username-input" className="sr-only">
+            ユーザー名またはURL
+          </label>
           <input
+            id="username-input"
+            name="username"
             type="text"
             placeholder="ユーザー名またはURLを入力"
+            autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
