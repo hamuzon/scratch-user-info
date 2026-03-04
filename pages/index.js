@@ -242,6 +242,10 @@ export default function Home() {
           padding: 15px;
           box-sizing: border-box;
         }
+
+        a {
+          color: #ffffff;
+        }
       `}</style>
 
       <style jsx>{`
@@ -335,6 +339,8 @@ export default function Home() {
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
           word-wrap: break-word;
           overflow: hidden;
+          content-visibility: auto;
+          contain-intrinsic-size: 320px;
         }
 
         /* 全体のリンク設定 */
@@ -505,6 +511,25 @@ export default function Home() {
 
         .turbowarp-button {
           background: linear-gradient(135deg, #ff9800, #ff5722);
+        }
+
+        @media (max-width: 900px), (pointer: coarse), (hover: none) {
+          .container {
+            backdrop-filter: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+          }
+
+          .project {
+            box-shadow: none;
+          }
+        }
+
+        @media (prefers-reduced-data: reduce) {
+          .container,
+          .project {
+            box-shadow: none;
+            backdrop-filter: none;
+          }
         }
 
         @media (max-width: 500px) {
