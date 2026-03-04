@@ -1,8 +1,7 @@
 // pages/index.js
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -99,6 +98,7 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const joinedDate = useMemo(() => formatJoinedDate(userInfo?.history?.joined), [userInfo?.history?.joined]);
 
   const fetchUserInfo = async (e) => {
     e.preventDefault();
@@ -220,10 +220,23 @@ export default function Home() {
       <Head>
         <title>Scratchユーザー情報表示</title>
         <link rel="icon" href="/icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+        <meta
+          name="description"
+          content="Scratchユーザー情報と公開プロジェクトをすばやく確認できるツールです。ユーザー名・プロフィール・作品情報を表示します。"
+        />
+        <link rel="preconnect" href="https://scratch.mit.edu" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn2.scratch.mit.edu" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://scratch.mit.edu" />
+        <link rel="dns-prefetch" href="https://cdn2.scratch.mit.edu" />
       </Head>
 
       <style jsx global>{`
+        :root {
+          --link-color: #fff;
+          --inline-link-color: #00ffcc;
+        }
+
         body {
           font-family: 'Roboto', sans-serif;
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -235,6 +248,10 @@ export default function Home() {
           color: #fff;
           padding: 15px;
           box-sizing: border-box;
+        }
+
+        a {
+          color: #ffffff;
         }
       `}</style>
 
@@ -267,6 +284,18 @@ export default function Home() {
           gap: 10px;
         }
 
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
         input {
           flex: 1;
           min-width: 200px;
@@ -277,7 +306,7 @@ export default function Home() {
           border-radius: 8px;
           background-color: transparent;
           outline: none;
-          transition: all 0.3s;
+          transition: border-color 0.2s, box-shadow 0.2s;
           box-sizing: border-box;
         }
 
@@ -300,7 +329,7 @@ export default function Home() {
           border: none;
           border-radius: 8px;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: background 0.2s;
           white-space: nowrap;
         }
 
@@ -329,24 +358,32 @@ export default function Home() {
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
           word-wrap: break-word;
           overflow: hidden;
+          content-visibility: auto;
+          contain-intrinsic-size: 320px;
         }
 
         /* 全体のリンク設定 */
         a,
-        a:-webkit-any-link {
-          color: #fff;
+        a:-webkit-any-link,
+        a:any-link {
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
           text-decoration: underline;
           text-underline-offset: 4px;
-          text-decoration-color: #fff;
+          text-decoration-color: var(--link-color);
           overflow-wrap: anywhere;
           word-break: break-word;
+          -webkit-tap-highlight-color: transparent;
         }
 
         a:visited,
         a:hover,
-        a:active {
-          color: #fff;
-          text-decoration-color: #fff;
+        a:active,
+        a:focus,
+        a:focus-visible {
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
+          text-decoration-color: var(--link-color);
         }
 
         /* 個別のリンク設定 */
@@ -356,13 +393,15 @@ export default function Home() {
           font-weight: bold;
           display: block;
           margin-bottom: 5px;
-          color: #fff;
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
         }
 
         .project-title a:visited,
         .project-title a:hover,
         .project-title a:active {
-          color: #fff;
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
         }
 
         /* 生成された URL / @メンションリンク */
@@ -370,7 +409,8 @@ export default function Home() {
         .username-link,
         .inline-link:-webkit-any-link,
         .username-link:-webkit-any-link {
-          color: #fff; /* 白色固定 */
+          color: var(--inline-link-color);
+          -webkit-text-fill-color: var(--inline-link-color);
           text-decoration: underline;
           text-underline-offset: 4px;
         }
@@ -381,12 +421,21 @@ export default function Home() {
         .username-link:visited,
         .username-link:hover,
         .username-link:active {
-          color: #fff; 
-          text-decoration-color: #fff; 
+          color: var(--inline-link-color);
+          -webkit-text-fill-color: var(--inline-link-color);
+          text-decoration-color: var(--inline-link-color);
         }
 
         a:-webkit-any-link {
-          color: #fff;
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          input,
+          button {
+            transition: none;
+          }
         }
 
         .project-image {
@@ -483,10 +532,36 @@ export default function Home() {
           background: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
+        @media (max-width: 900px), (pointer: coarse), (hover: none) {
+          .container {
+            backdrop-filter: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+          }
+
+          .project {
+            box-shadow: none;
+          }
+        }
+
+        @media (prefers-reduced-data: reduce) {
+          .container,
+          .project {
+            box-shadow: none;
+            backdrop-filter: none;
+          }
+        }
+
         @media (max-width: 500px) {
           .container {
             padding: 15px;
             margin: 10px auto;
+            backdrop-filter: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.14);
+          }
+
+          .project {
+            box-shadow: none;
           }
 
           .form {
@@ -520,13 +595,19 @@ export default function Home() {
         }
       `}</style>
 
-      <main className="container">
+      <main id="main-content" className="container" role="main">
         <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form className="form" onSubmit={fetchUserInfo}>
+          <label htmlFor="username-input" className="sr-only">
+            ユーザー名またはURL
+          </label>
           <input
+            id="username-input"
+            name="username"
             type="text"
             placeholder="ユーザー名またはURLを入力"
+            autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -574,10 +655,10 @@ export default function Home() {
               <p className="info">
                 <strong>登録日:</strong>{' '}
                 <time
-                  title={`${formatJoinedDate(userInfo.history?.joined).detail}（ホバー/タップで詳細）`}
+                  title={`${joinedDate.detail}（ホバー/タップで詳細）`}
                   dateTime={userInfo.history?.joined || ''}
                 >
-                  {formatJoinedDate(userInfo.history?.joined).short}
+                  {joinedDate.short}
                 </time>
               </p>
             </div>
@@ -634,6 +715,11 @@ export default function Home() {
                     src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
                     alt={project.title}
                     className="project-image"
+                    width="480"
+                    height="360"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                   />
                 </a>
 
@@ -678,7 +764,6 @@ export default function Home() {
             ))}
         </div>
       </main>
-      <SpeedInsights />
     </>
   );
 }

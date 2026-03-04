@@ -1,5 +1,8 @@
 // pages/api/user.js
 
+const SCRATCH_API_BASE = 'https://api.scratch.mit.edu';
+const PROJECT_LIMIT = 12;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -21,24 +24,32 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'username is required' });
     }
 
-    const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
+    const encodedUsername = encodeURIComponent(resolvedUsername);
+    const [userRes, projectsRes] = await Promise.all([
+      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`),
+      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}`),
+    ]);
+
     if (!userRes.ok) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`);
+    const userInfo = await userRes.json();
     let projects = [];
+
     if (projectsRes.ok) {
-      projects = await projectsRes.json();
-      projects = projects.map((project) => ({
-        ...project,
+      const rawProjects = await projectsRes.json();
+      projects = rawProjects.map((project) => ({
+        id: project.id,
+        title: project.title,
+        instructions: project.instructions,
+        description: project.description,
         published_date: formatDatetime(project.history?.shared),
         modified_date: formatDatetime(project.history?.modified),
       }));
     }
 
-    const userInfo = await userRes.json();
-
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     return res.status(200).json({ user_info: userInfo, projects, resolved_username: resolvedUsername });
   } catch {
     return res.status(500).json({ error: 'Internal server error' });
@@ -122,9 +133,8 @@ async function resolveUsername(input) {
   return '';
 }
 
-
 async function getProjectAuthorUsername(projectId) {
-  const projectRes = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
+  const projectRes = await fetch(`${SCRATCH_API_BASE}/projects/${projectId}`);
   if (!projectRes.ok) {
     return '';
   }
