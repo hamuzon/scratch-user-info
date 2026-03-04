@@ -221,6 +221,10 @@ export default function Home() {
         <title>Scratchユーザー情報表示</title>
         <link rel="icon" href="/icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://scratch.mit.edu" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn2.scratch.mit.edu" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://scratch.mit.edu" />
+        <link rel="dns-prefetch" href="https://cdn2.scratch.mit.edu" />
       </Head>
 
       <style jsx global>{`
@@ -689,6 +693,9 @@ export default function Home() {
                     src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
                     alt={project.title}
                     className="project-image"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                   />
                 </a>
 
