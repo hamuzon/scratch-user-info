@@ -2,7 +2,6 @@
 import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -221,7 +220,7 @@ export default function Home() {
       <Head>
         <title>Scratchユーザー情報表示</title>
         <link rel="icon" href="/icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <style jsx global>{`
@@ -734,7 +733,6 @@ export default function Home() {
             ))}
         </div>
       </main>
-      <SpeedInsights />
     </>
   );
 }
