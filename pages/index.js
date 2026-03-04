@@ -220,7 +220,11 @@ export default function Home() {
       <Head>
         <title>Scratchユーザー情報表示</title>
         <link rel="icon" href="/icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+        <meta
+          name="description"
+          content="Scratchユーザー情報と公開プロジェクトをすばやく確認できるツールです。ユーザー名・プロフィール・作品情報を表示します。"
+        />
         <link rel="preconnect" href="https://scratch.mit.edu" crossOrigin="" />
         <link rel="preconnect" href="https://cdn2.scratch.mit.edu" crossOrigin="" />
         <link rel="dns-prefetch" href="https://scratch.mit.edu" />
@@ -591,7 +595,7 @@ export default function Home() {
         }
       `}</style>
 
-      <main className="container">
+      <main id="main-content" className="container" role="main">
         <h1 className="title">Scratchユーザー情報表示</h1>
 
         <form className="form" onSubmit={fetchUserInfo}>
@@ -711,6 +715,8 @@ export default function Home() {
                     src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
                     alt={project.title}
                     className="project-image"
+                    width="480"
+                    height="360"
                     loading="lazy"
                     decoding="async"
                     fetchPriority="low"
