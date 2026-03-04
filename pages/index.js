@@ -1,5 +1,5 @@
 // pages/index.js
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -99,6 +99,7 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const joinedDate = useMemo(() => formatJoinedDate(userInfo?.history?.joined), [userInfo?.history?.joined]);
 
   const fetchUserInfo = async (e) => {
     e.preventDefault();
@@ -224,6 +225,10 @@ export default function Home() {
       </Head>
 
       <style jsx global>{`
+        :root {
+          --link-color: #fff;
+        }
+
         body {
           font-family: 'Roboto', sans-serif;
           background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -277,7 +282,7 @@ export default function Home() {
           border-radius: 8px;
           background-color: transparent;
           outline: none;
-          transition: all 0.3s;
+          transition: border-color 0.2s, box-shadow 0.2s;
           box-sizing: border-box;
         }
 
@@ -300,7 +305,7 @@ export default function Home() {
           border: none;
           border-radius: 8px;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: background 0.2s;
           white-space: nowrap;
         }
 
@@ -333,20 +338,26 @@ export default function Home() {
 
         /* 全体のリンク設定 */
         a,
-        a:-webkit-any-link {
-          color: #fff;
+        a:-webkit-any-link,
+        a:any-link {
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
           text-decoration: underline;
           text-underline-offset: 4px;
-          text-decoration-color: #fff;
+          text-decoration-color: var(--link-color);
           overflow-wrap: anywhere;
           word-break: break-word;
+          -webkit-tap-highlight-color: transparent;
         }
 
         a:visited,
         a:hover,
-        a:active {
-          color: #fff;
-          text-decoration-color: #fff;
+        a:active,
+        a:focus,
+        a:focus-visible {
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
+          text-decoration-color: var(--link-color);
         }
 
         /* 個別のリンク設定 */
@@ -356,13 +367,15 @@ export default function Home() {
           font-weight: bold;
           display: block;
           margin-bottom: 5px;
-          color: #fff;
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
         }
 
         .project-title a:visited,
         .project-title a:hover,
         .project-title a:active {
-          color: #fff;
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
         }
 
         /* 生成された URL / @メンションリンク */
@@ -370,7 +383,8 @@ export default function Home() {
         .username-link,
         .inline-link:-webkit-any-link,
         .username-link:-webkit-any-link {
-          color: #fff; /* 白色固定 */
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
           text-decoration: underline;
           text-underline-offset: 4px;
         }
@@ -381,12 +395,21 @@ export default function Home() {
         .username-link:visited,
         .username-link:hover,
         .username-link:active {
-          color: #fff; 
-          text-decoration-color: #fff; 
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
+          text-decoration-color: var(--link-color);
         }
 
         a:-webkit-any-link {
-          color: #fff;
+          color: var(--link-color);
+          -webkit-text-fill-color: var(--link-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          input,
+          button {
+            transition: none;
+          }
         }
 
         .project-image {
@@ -487,6 +510,13 @@ export default function Home() {
           .container {
             padding: 15px;
             margin: 10px auto;
+            backdrop-filter: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.14);
+          }
+
+          .project {
+            box-shadow: none;
           }
 
           .form {
@@ -574,10 +604,10 @@ export default function Home() {
               <p className="info">
                 <strong>登録日:</strong>{' '}
                 <time
-                  title={`${formatJoinedDate(userInfo.history?.joined).detail}（ホバー/タップで詳細）`}
+                  title={`${joinedDate.detail}（ホバー/タップで詳細）`}
                   dateTime={userInfo.history?.joined || ''}
                 >
-                  {formatJoinedDate(userInfo.history?.joined).short}
+                  {joinedDate.short}
                 </time>
               </p>
             </div>
