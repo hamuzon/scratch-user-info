@@ -227,6 +227,7 @@ export default function Home() {
       <style jsx global>{`
         :root {
           --link-color: #fff;
+          --inline-link-color: #00ffcc;
         }
 
         body {
@@ -383,8 +384,8 @@ export default function Home() {
         .username-link,
         .inline-link:-webkit-any-link,
         .username-link:-webkit-any-link {
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
+          color: var(--inline-link-color);
+          -webkit-text-fill-color: var(--inline-link-color);
           text-decoration: underline;
           text-underline-offset: 4px;
         }
@@ -395,9 +396,9 @@ export default function Home() {
         .username-link:visited,
         .username-link:hover,
         .username-link:active {
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
-          text-decoration-color: var(--link-color);
+          color: var(--inline-link-color);
+          -webkit-text-fill-color: var(--inline-link-color);
+          text-decoration-color: var(--inline-link-color);
         }
 
         a:-webkit-any-link {
