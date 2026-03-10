@@ -13,6 +13,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "@vercel/speed-insights": "latest",
     "next": "^16.1.6",
     "react": "^19.2.1",
     "react-dom": "^19.2.1"
