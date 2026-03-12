@@ -32,6 +32,8 @@ export default function Custom404() {
         a,
         a:-webkit-any-link,
         a:any-link {
+          color: #fff;
+          text-decoration: none;
           -webkit-tap-highlight-color: transparent;
         }
       `}</style>
