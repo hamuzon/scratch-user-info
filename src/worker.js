@@ -22,13 +22,16 @@ function formatDatetime(datetimeString) {
 }
 
 async function getProjectAuthorUsername(projectId) {
-  const response = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
-  if (!response.ok) {
+  try {
+    const response = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
+    if (!response.ok) {
+      return '';
+    }
+    const project = await response.json();
+    return project?.author?.username || '';
+  } catch {
     return '';
   }
-
-  const project = await response.json();
-  return project?.author?.username || '';
 }
 
 async function resolveUsername(input) {
@@ -94,33 +97,46 @@ async function handleApiRequest(request) {
     return new Response(JSON.stringify({ error: 'username is required' }), { status: 400, headers: jsonHeaders });
   }
 
-  const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
-  if (!userRes.ok) {
-    return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: jsonHeaders });
-  }
+  try {
+    const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
+    if (!userRes.ok) {
+      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: jsonHeaders });
+    }
 
-  const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`);
-  let projects = [];
-  if (projectsRes.ok) {
-    projects = await projectsRes.json();
-    projects = projects.map((project) => ({
-      ...project,
-      published_date: formatDatetime(project.history?.shared),
-      modified_date: formatDatetime(project.history?.modified),
-    }));
-  }
+    const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`);
+    let projects = [];
+    if (projectsRes.ok) {
+      projects = await projectsRes.json();
+      projects = projects.map((project) => ({
+        ...project,
+        published_date: formatDatetime(project.history?.shared),
+        modified_date: formatDatetime(project.history?.modified),
+      }));
+    }
 
-  const userInfo = await userRes.json();
-  return new Response(JSON.stringify({ user_info: userInfo, projects, resolved_username: resolvedUsername }), {
-    status: 200,
-    headers: jsonHeaders,
-  });
+    const userInfo = await userRes.json();
+    return new Response(JSON.stringify({ user_info: userInfo, projects, resolved_username: resolvedUsername }), {
+      status: 200,
+      headers: jsonHeaders,
+    });
+  } catch (e) {
+    console.error('API handler error:', e);
+    return new Response(JSON.stringify({ error: 'Could not fetch data from Scratch API.' }), {
+      status: 503, // Service Unavailable
+      headers: jsonHeaders,
+    });
+  }
 }
 
 async function proxyToNext(request) {
-  const url = new URL(request.url);
-  const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
-  return fetch(new Request(target.toString(), request));
+  try {
+    const url = new URL(request.url);
+    const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
+    return fetch(new Request(target.toString(), request));
+  } catch (e) {
+    console.error('Proxy error:', e);
+    return new Response('Error proxying to application', { status: 502 });
+  }
 }
 
 export default {
