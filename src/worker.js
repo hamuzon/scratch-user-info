@@ -132,16 +132,37 @@ async function proxyToNext(request) {
   try {
     const url = new URL(request.url);
     const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
-    return fetch(new Request(target.toString(), request));
+    const response = await fetch(new Request(target.toString(), request));
+
+    // オリジンサーバーが5xx系エラーを返した場合、トップページにリダイレクトする
+    if (response.status >= 500 && response.status < 600) {
+      console.error(`Origin server returned a ${response.status} error for ${target.toString()}.`);
+      const requestUrl = new URL(request.url);
+      return Response.redirect(requestUrl.origin, 302);
+    }
+
+    return response;
   } catch (e) {
     console.error('Proxy error:', e);
-    return new Response('Error proxying to application', { status: 502 });
+    // プロキシ処理中にエラーが発生した場合もトップページにリダイレクトする
+    const requestUrl = new URL(request.url);
+    return Response.redirect(requestUrl.origin, 302);
   }
 }
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
+
+    // URL に // が含まれている場合、 / に正規化してリダイレクトする
+    // これにより、`https://scratch-user-info.hamusata.workers.dev//` のようなURLで
+    // プロキシエラーが発生するのを防ぐ
+    if (url.pathname.includes('//')) {
+      const newPathname = url.pathname.replace(/\/+/g, '/');
+      const newUrl = new URL(url);
+      newUrl.pathname = newPathname;
+      return Response.redirect(newUrl.toString(), 301);
+    }
 
     if (url.pathname === '/api/user') {
       return handleApiRequest(request);
