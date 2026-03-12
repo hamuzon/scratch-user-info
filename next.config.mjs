@@ -16,7 +16,7 @@ const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath,
+  basePath: basePath,
   assetPrefix: basePath || undefined,
   poweredByHeader: false,
   async headers() {
