@@ -169,5 +169,5 @@ export default {
     }
 
     return proxyToNext(request);
-  },
+  }
 };
