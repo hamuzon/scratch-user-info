@@ -98,12 +98,19 @@ async function handleApiRequest(request) {
   }
 
   try {
-    const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
+    const userUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`;
+    const projectsUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`;
+
+    const [userRes, projectsRes] = await Promise.all([
+      fetch(userUrl),
+      fetch(projectsUrl),
+    ]);
+
     if (!userRes.ok) {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: jsonHeaders });
     }
 
-    const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`);
+    const userInfo = await userRes.json();
     let projects = [];
     if (projectsRes.ok) {
       projects = await projectsRes.json();
@@ -114,7 +121,6 @@ async function handleApiRequest(request) {
       }));
     }
 
-    const userInfo = await userRes.json();
     return new Response(JSON.stringify({ user_info: userInfo, projects, resolved_username: resolvedUsername }), {
       status: 200,
       headers: jsonHeaders,
