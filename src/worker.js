@@ -138,7 +138,19 @@ async function proxyToNext(request) {
   try {
     const url = new URL(request.url);
     const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
-    const response = await fetch(new Request(target.toString(), request));
+    
+    // Create a new request with the original headers
+    const newHeaders = new Headers(request.headers);
+    // Explicitly set the Host header to the target origin's host
+    // This is required for Vercel to route the request correctly
+    newHeaders.set('Host', target.host);
+    
+    const response = await fetch(new Request(target.toString(), {
+      method: request.method,
+      headers: newHeaders,
+      body: request.body,
+      redirect: 'follow'
+    }));
 
     // オリジンサーバーが5xx系エラーを返した場合、トップページにリダイレクトする
     if (response.status >= 500 && response.status < 600) {
