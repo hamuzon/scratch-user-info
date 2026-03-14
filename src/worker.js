@@ -1,6 +1,7 @@
+import { resolveUsername } from './utils/resolver';
+
 const jsonHeaders = {
   'content-type': 'application/json; charset=UTF-8',
-  'cache-control': 'no-store',
 };
 
 const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
@@ -19,60 +20,6 @@ function formatDatetime(datetimeString) {
   } catch {
     return '不明';
   }
-}
-
-async function getProjectAuthorUsername(projectId) {
-  try {
-    const response = await fetch(`https://api.scratch.mit.edu/projects/${projectId}`);
-    if (!response.ok) {
-      return '';
-    }
-    const project = await response.json();
-    return project?.author?.username || '';
-  } catch {
-    return '';
-  }
-}
-
-async function resolveUsername(input) {
-  const trimmed = input.trim();
-  const normalized = trimmed
-    .replace(/^https?:\/\//i, '')
-    .replace(/^www\./i, '')
-    .replace(/^\/+/, '');
-
-  const scratchUserMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
-  if (scratchUserMatch?.[1]) {
-    return scratchUserMatch[1];
-  }
-
-  const scratchApiUserMatch = normalized.match(/^(?:api\.scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
-  if (scratchApiUserMatch?.[1]) {
-    return scratchApiUserMatch[1];
-  }
-
-  const scratchProjectMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?projects\/(\d+)(?:[/?#].*)?$/i);
-  if (scratchProjectMatch?.[1]) {
-    return getProjectAuthorUsername(scratchProjectMatch[1]);
-  }
-
-  const turboWarpProjectMatch = normalized.match(/^(?:turbowarp\.org\/)?(\d+)(?:[/?#].*)?$/i);
-  if (turboWarpProjectMatch?.[1]) {
-    return getProjectAuthorUsername(turboWarpProjectMatch[1]);
-  }
-
-  const singleSegmentMatch = normalized.match(/^([A-Za-z0-9_-]{3,20})(?:[/?#].*)?$/);
-  if (singleSegmentMatch?.[1]) {
-    const candidate = singleSegmentMatch[1];
-
-    if (/^\d+$/.test(candidate)) {
-      return getProjectAuthorUsername(candidate);
-    }
-
-    return candidate;
-  }
-
-  return '';
 }
 
 async function handleApiRequest(request) {
@@ -98,31 +45,53 @@ async function handleApiRequest(request) {
   }
 
   try {
-    const userRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`);
+    const userUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`;
+    const projectsUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`;
+
+    // Cache options for Cloudflare
+    const fetchOptions = {
+      cf: {
+        cacheTtl: 300, 
+        cacheEverything: true,
+      }
+    };
+
+    const [userRes, projectsRes] = await Promise.all([
+      fetch(userUrl, fetchOptions),
+      fetch(projectsUrl, fetchOptions)
+    ]);
+
     if (!userRes.ok) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: jsonHeaders });
+      if (userRes.status === 404) {
+        return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: jsonHeaders });
+      }
+      throw new Error(`Scratch API returned ${userRes.status}`);
     }
 
-    const projectsRes = await fetch(`https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`);
-    let projects = [];
-    if (projectsRes.ok) {
-      projects = await projectsRes.json();
-      projects = projects.map((project) => ({
-        ...project,
-        published_date: formatDatetime(project.history?.shared),
-        modified_date: formatDatetime(project.history?.modified),
-      }));
-    }
+    const [userInfo, projectsData] = await Promise.all([
+      userRes.json(),
+      projectsRes.ok ? projectsRes.json() : Promise.resolve([])
+    ]);
 
-    const userInfo = await userRes.json();
+    const projects = (projectsData || []).map((project) => ({
+      ...project,
+      published_date: formatDatetime(project.history?.shared),
+      modified_date: formatDatetime(project.history?.modified),
+    }));
+
+    const responseHeaders = {
+      ...jsonHeaders,
+      'cache-control': 'public, max-age=300, stale-while-revalidate=600',
+    };
+
     return new Response(JSON.stringify({ user_info: userInfo, projects, resolved_username: resolvedUsername }), {
       status: 200,
-      headers: jsonHeaders,
+      headers: responseHeaders,
     });
   } catch (e) {
     console.error('API handler error:', e);
     return new Response(JSON.stringify({ error: 'Could not fetch data from Scratch API.' }), {
-      status: 503, // Service Unavailable
+      status: 503,
       headers: jsonHeaders,
     });
   }
@@ -134,7 +103,6 @@ async function proxyToNext(request) {
     const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
     const response = await fetch(new Request(target.toString(), request));
 
-    // オリジンサーバーが5xx系エラーを返した場合、トップページにリダイレクトする
     if (response.status >= 500 && response.status < 600) {
       console.error(`Origin server returned a ${response.status} error for ${target.toString()}.`);
       const requestUrl = new URL(request.url);
@@ -144,7 +112,6 @@ async function proxyToNext(request) {
     return response;
   } catch (e) {
     console.error('Proxy error:', e);
-    // プロキシ処理中にエラーが発生した場合もトップページにリダイレクトする
     const requestUrl = new URL(request.url);
     return Response.redirect(requestUrl.origin, 302);
   }
@@ -154,9 +121,6 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
 
-    // URL に // が含まれている場合、 / に正規化してリダイレクトする
-    // これにより、`https://scratch-user-info.hamusata.workers.dev//` のようなURLで
-    // プロキシエラーが発生するのを防ぐ
     if (url.pathname.includes('//')) {
       const newPathname = url.pathname.replace(/\/+/g, '/');
       const newUrl = new URL(url);

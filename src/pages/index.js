@@ -1,96 +1,9 @@
 // pages/index.js
 import { useMemo, useState } from 'react';
-import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-
-const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
-const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
-
-const toHref = (value) => {
-  if (/^https?:\/\//i.test(value)) {
-    return value;
-  }
-  return `https://${value}`;
-};
-
-const formatJoinedDate = (joined) => {
-  if (!joined) {
-    return { short: '不明', detail: '不明' };
-  }
-
-  const date = new Date(joined);
-  return {
-    short: date.toLocaleDateString('ja-JP'),
-    detail: date.toLocaleString('ja-JP', {
-      timeZone: 'Asia/Tokyo',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }),
-  };
-};
-
-const normalizeMembershipValue = (value) => {
-  if (typeof value === 'string') {
-    const normalized = value.trim();
-    if (!normalized) {
-      return '';
-    }
-
-    const lowered = normalized.toLowerCase();
-    if (['0', 'false', 'none', 'null', 'undefined', 'new scratcher'].includes(lowered)) {
-      return '';
-    }
-
-    return normalized;
-  }
-
-  if (typeof value === 'number') {
-    if (value <= 0) {
-      return '';
-    }
-    return value === 1 ? 'Scratcher' : `Membership ${value}`;
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? 'Scratcher' : '';
-  }
-
-  if (value && typeof value === 'object') {
-    return (
-      normalizeMembershipValue(value.label) ||
-      normalizeMembershipValue(value.name) ||
-      normalizeMembershipValue(value.text) ||
-      ''
-    );
-  }
-
-  return '';
-};
-
-const getMembershipText = (user) => {
-  const candidates = [
-    user?.membership_label,
-    user?.membership_avatar_badge,
-    user?.profile?.membership_label,
-    user?.profile?.membership_avatar_badge,
-  ];
-
-  for (const candidate of candidates) {
-    const parsed = normalizeMembershipValue(candidate);
-    if (parsed) {
-      return parsed;
-    }
-  }
-
-  return '';
-};
-
-const shouldShowMembership = (user) => Boolean(getMembershipText(user));
+import ProjectCard, { renderTextWithLinks } from '../components/ProjectCard';
+import { formatJoinedDate, getMembershipText, shouldShowMembership } from '../utils/scratch';
 
 export default function Home() {
   const router = useRouter();
@@ -145,81 +58,8 @@ export default function Home() {
     setLoading(false);
   };
 
-  const renderTextWithLinks = (text) => {
-    if (!text) {
-      return null;
-    }
-
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-    TEXT_LINK_PATTERN.lastIndex = 0;
-
-    while ((match = TEXT_LINK_PATTERN.exec(text)) !== null) {
-      const matchText = match[0];
-      const matchStart = match.index;
-      let matchEnd = matchStart + matchText.length;
-      let trailing = '';
-      let tokenText = matchText;
-
-      if (match[1]) {
-        const trailingMatch = matchText.match(TRAILING_PUNCTUATION_PATTERN);
-        if (trailingMatch?.[0]) {
-          trailing = trailingMatch[0];
-          tokenText = matchText.slice(0, -trailing.length);
-          matchEnd -= trailing.length;
-        }
-      }
-
-      if (matchStart > lastIndex) {
-        parts.push(text.slice(lastIndex, matchStart));
-      }
-
-      if (match[1]) {
-        parts.push(
-          <a
-            key={`${matchStart}-link`}
-            href={toHref(tokenText)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-link"
-          >
-            {tokenText}
-          </a>
-        );
-
-        if (trailing) {
-          parts.push(trailing);
-        }
-      } else if (match[2]) {
-        const mention = match[2];
-        parts.push(
-          <a
-            key={`${matchStart}-mention`}
-            href={`https://scratch.mit.edu/users/${encodeURIComponent(mention)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-link"
-          >
-            @{mention}
-          </a>
-        );
-      }
-
-      lastIndex = matchEnd;
-    }
-
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-
-    return parts;
-  };
-
   return (
     <Layout>
-
-
       <style jsx>{`
         .container {
           width: 100%;
@@ -314,205 +154,10 @@ export default function Home() {
           background: linear-gradient(135deg, #ff6f7c, #ff4b5c);
         }
 
-        .project {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(0, 255, 204, 0.3);
-          border-radius: 10px;
-          padding: 15px;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-          word-wrap: break-word;
-          overflow: hidden;
-          content-visibility: auto;
-          contain-intrinsic-size: 320px;
-        }
-
-        /* 全体のリンク設定 */
-        a,
-        a:-webkit-any-link,
-        a:any-link {
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          text-decoration-color: var(--link-color);
-          overflow-wrap: anywhere;
-          word-break: break-word;
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        a:visited,
-        a:hover,
-        a:active,
-        a:focus,
-        a:focus-visible {
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
-          text-decoration-color: var(--link-color);
-        }
-
-        /* 個別のリンク設定 */
-        .project-title a,
-        .project-title a:-webkit-any-link {
-          font-size: 18px;
-          font-weight: bold;
-          display: block;
-          margin-bottom: 5px;
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
-        }
-
-        .project-title a:visited,
-        .project-title a:hover,
-        .project-title a:active {
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
-        }
-
-        /* 生成された URL / @メンションリンク */
-        .inline-link,
-        .username-link,
-        .inline-link:-webkit-any-link,
-        .username-link:-webkit-any-link {
-          color: var(--inline-link-color);
-          -webkit-text-fill-color: var(--inline-link-color);
-          text-decoration: underline;
-          text-underline-offset: 4px;
-        }
-
-        .inline-link:visited,
-        .inline-link:hover,
-        .inline-link:active,
-        .username-link:visited,
-        .username-link:hover,
-        .username-link:active {
-          color: var(--inline-link-color);
-          -webkit-text-fill-color: var(--inline-link-color);
-          text-decoration-color: var(--inline-link-color);
-        }
-
-        a:-webkit-any-link {
-          color: var(--link-color);
-          -webkit-text-fill-color: var(--link-color);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          input,
-          button {
-            transition: none;
-          }
-        }
-
-        .project-image {
-          width: 100%;
-          height: auto;
-          aspect-ratio: 4 / 3;
-          object-fit: cover;
-          border-radius: 8px;
-          border: 2px solid #00ffcc;
-          margin-top: 10px;
-          display: block;
-        }
-
-        .project-image-link {
-          display: block;
-          margin-top: 10px;
-          text-decoration: none;
-        }
-
-        .info {
-          font-size: 14px;
-          color: #e0e0e0;
-          margin-top: 10px;
-          line-height: 1.7;
-        }
-
-        .profile-section {
-          margin-top: 14px;
-          padding: 15px;
-          border-radius: 10px;
-          border: 1px solid rgba(0, 255, 204, 0.25);
-          background: rgba(255, 255, 255, 0.06);
-        }
-
-        .profile-section strong {
-          color: #00ffcc;
-          display: block;
-          margin-bottom: 8px;
-        }
-
-        .profile-section p {
-          margin: 0;
-          white-space: pre-wrap;
-          word-break: break-word;
-          line-height: 1.7;
-        }
-
-        .meta-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-        }
-
-        .meta-row .info {
-          margin-top: 10px;
-        }
-
-        .usage,
-        .description {
-          margin-top: 15px;
-          padding: 15px;
-          border-radius: 8px;
-          border: 1px solid rgba(0, 255, 204, 0.2);
-          background-color: rgba(255, 255, 255, 0.05);
-          color: #fff;
-          font-size: 14px;
-        }
-
-        .usage p,
-        .description p {
-          margin: 5px 0 0 0;
-          white-space: pre-wrap;
-          word-break: break-word;
-          line-height: 1.7;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 10px;
-          margin-top: 15px;
-        }
-
-        .action-buttons button {
-          flex: 1;
-          text-align: center;
-        }
-
-        .scratch-button {
-          background: linear-gradient(135deg, #00ffcc, #009999);
-        }
-
-        .turbowarp-button {
-          background: linear-gradient(135deg, #ff9800, #ff5722);
-        }
-
         @media (max-width: 900px), (pointer: coarse), (hover: none) {
           .container {
             backdrop-filter: none;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-          }
-
-          .project {
-            box-shadow: none;
-          }
-        }
-
-        @media (prefers-reduced-data: reduce) {
-          .container,
-          .project {
-            box-shadow: none;
-            backdrop-filter: none;
           }
         }
 
@@ -523,10 +168,6 @@ export default function Home() {
             backdrop-filter: none;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             background-color: rgba(255, 255, 255, 0.14);
-          }
-
-          .project {
-            box-shadow: none;
           }
 
           .form {
@@ -544,18 +185,6 @@ export default function Home() {
 
           .title {
             font-size: 20px;
-          }
-
-          .project-title a {
-            font-size: 16px;
-          }
-
-          .meta-row {
-            gap: 8px;
-          }
-
-          .info {
-            line-height: 1.6;
           }
         }
       `}</style>
@@ -659,73 +288,7 @@ export default function Home() {
         <div style={{ marginTop: 25 }}>
           {projects.length > 0 &&
             projects.map((project) => (
-              <div key={project.id} className="project">
-                <div className="project-title">
-                  <a
-                    href={`https://scratch.mit.edu/projects/${project.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {project.title}
-                  </a>
-                </div>
-
-                <a
-                  href={`https://scratch.mit.edu/projects/${project.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="project-image-link"
-                >
-                  <img
-                    src={`https://cdn2.scratch.mit.edu/get_image/project/${project.id}_480x360.png`}
-                    alt={project.title}
-                    className="project-image"
-                    width="480"
-                    height="360"
-                    loading="lazy"
-                    decoding="async"
-                    fetchPriority="low"
-                  />
-                </a>
-
-                <p className="info">
-                  <strong>ID:</strong> {project.id}
-                  <br />
-                  <strong>共有:</strong> {project.published_date}
-                  <br />
-                  <strong>更新:</strong> {project.modified_date}
-                </p>
-
-                <div className="action-buttons">
-                  <button
-                    onClick={() => window.open(`https://scratch.mit.edu/projects/${project.id}`, '_blank')}
-                    className="scratch-button"
-                  >
-                    Scratch
-                  </button>
-
-                  <button
-                    onClick={() => window.open(`https://turbowarp.org/${project.id}`, '_blank')}
-                    className="turbowarp-button"
-                  >
-                    TurboWarp
-                  </button>
-                </div>
-
-                {project.instructions && (
-                  <div className="usage">
-                    <strong>使い方:</strong>
-                    <p>{renderTextWithLinks(project.instructions)}</p>
-                  </div>
-                )}
-
-                {project.description && (
-                  <div className="description">
-                    <strong>メモとクレジット:</strong>
-                    <p>{renderTextWithLinks(project.description)}</p>
-                  </div>
-                )}
-              </div>
+              <ProjectCard key={project.id} project={project} />
             ))}
         </div>
       </main>
