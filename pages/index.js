@@ -693,7 +693,7 @@ export default function Home() {
 
         <div style={{ marginTop: 25 }}>
           {projects.length > 0 &&
-            projects.map((project) => (
+            projects.map((project, index) => (
               <div key={project.id} className="project">
                 <div className="project-title">
                   <a
@@ -717,9 +717,9 @@ export default function Home() {
                     className="project-image"
                     width="480"
                     height="360"
-                    loading="lazy"
+                    loading={index < 2 ? 'eager' : 'lazy'}
                     decoding="async"
-                    fetchPriority="low"
+                    fetchPriority={index === 0 ? 'high' : 'low'}
                   />
                 </a>
 

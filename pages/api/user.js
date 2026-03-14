@@ -34,24 +34,24 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const userInfo = await userRes.json();
-    let projects = [];
+    const [userInfo, rawProjects] = await Promise.all([
+      userRes.json(),
+      projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
+    ]);
 
-    if (projectsRes.ok) {
-      const rawProjects = await projectsRes.json();
-      projects = rawProjects.map((project) => ({
-        id: project.id,
-        title: project.title,
-        instructions: project.instructions,
-        description: project.description,
-        published_date: formatDatetime(project.history?.shared),
-        modified_date: formatDatetime(project.history?.modified),
-      }));
-    }
+    const projects = rawProjects.map((project) => ({
+      id: project.id,
+      title: project.title,
+      instructions: project.instructions,
+      description: project.description,
+      published_date: formatDatetime(project.history?.shared),
+      modified_date: formatDatetime(project.history?.modified),
+    }));
 
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     return res.status(200).json({ user_info: userInfo, projects, resolved_username: resolvedUsername });
-  } catch {
+  } catch (error) {
+    console.error('API Handler Error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -124,7 +124,14 @@ async function resolveUsername(input) {
     const candidate = singleSegmentMatch[1];
 
     if (/^\d+$/.test(candidate)) {
-      return getProjectAuthorUsername(candidate);
+      // It might be a project ID, let's check it in parallel with treating it as a username
+      const [authorFromProject, candidateExists] = await Promise.all([
+        getProjectAuthorUsername(candidate),
+        fetch(`${SCRATCH_API_BASE}/users/${encodeURIComponent(candidate)}`).then(r => r.ok)
+      ]);
+      
+      if (candidateExists) return candidate;
+      return authorFromProject || candidate;
     }
 
     return candidate;
