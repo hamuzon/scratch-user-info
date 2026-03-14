@@ -1,42 +1,11 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import Layout from '../components/Layout';
 
 export default function Custom404() {
   return (
-    <>
-      <Head>
-        <title>404 - ページが見つかりません</title>
-        <link rel="icon" href="/icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
-      </Head>
+    <Layout title="404 - ページが見つかりません">
 
-      <style jsx global>{`
-        :root {
-          --link-color: #fff;
-          --inline-link-color: #00ffcc;
-        }
-
-        body {
-          font-family: 'Roboto', sans-serif;
-          background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-          margin: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-          color: #fff;
-          padding: 15px;
-          box-sizing: border-box;
-        }
-
-        a,
-        a:-webkit-any-link,
-        a:any-link {
-          color: #fff;
-          text-decoration: none;
-          -webkit-tap-highlight-color: transparent;
-        }
-      `}</style>
 
       <style jsx>{`
         .container {
@@ -149,6 +118,6 @@ export default function Custom404() {
           ホームへ戻る
         </Link>
       </main>
-    </>
+    </Layout>
   );
 }

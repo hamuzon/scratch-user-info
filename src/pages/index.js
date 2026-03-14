@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import Layout from '../components/Layout';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -216,44 +217,8 @@ export default function Home() {
   };
 
   return (
-    <>
-      <Head>
-        <title>Scratchユーザー情報表示</title>
-        <link rel="icon" href="/icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
-        <meta
-          name="description"
-          content="Scratchユーザー情報と公開プロジェクトをすばやく確認できるツールです。ユーザー名・プロフィール・作品情報を表示します。"
-        />
-        <link rel="preconnect" href="https://scratch.mit.edu" crossOrigin="" />
-        <link rel="preconnect" href="https://cdn2.scratch.mit.edu" crossOrigin="" />
-        <link rel="dns-prefetch" href="https://scratch.mit.edu" />
-        <link rel="dns-prefetch" href="https://cdn2.scratch.mit.edu" />
-      </Head>
+    <Layout>
 
-      <style jsx global>{`
-        :root {
-          --link-color: #fff;
-          --inline-link-color: #00ffcc;
-        }
-
-        body {
-          font-family: 'Roboto', sans-serif;
-          background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-          margin: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-          color: #fff;
-          padding: 15px;
-          box-sizing: border-box;
-        }
-
-        a {
-          color: #ffffff;
-        }
-      `}</style>
 
       <style jsx>{`
         .container {
@@ -764,6 +729,6 @@ export default function Home() {
             ))}
         </div>
       </main>
-    </>
+    </Layout>
   );
 }
