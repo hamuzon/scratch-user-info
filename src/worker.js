@@ -168,8 +168,22 @@ async function proxyToNext(request) {
   }
 }
 
+function normalizeDotHost(request) {
+  const url = new URL(request.url);
+  if (url.hostname.endsWith('.')) {
+    url.hostname = url.hostname.slice(0, -1);
+    return Response.redirect(url.toString(), 301);
+  }
+  return null;
+}
+
 export default {
   async fetch(request) {
+    const dotRedirect = normalizeDotHost(request);
+    if (dotRedirect) {
+      return dotRedirect;
+    }
+
     const url = new URL(request.url);
 
     // URL に // が含まれている場合、 / に正規化してリダイレクトする

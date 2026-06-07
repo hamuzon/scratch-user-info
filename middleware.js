@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
-
 export function middleware(request) {
-  const url = new URL(request.url);
+  const url = request.nextUrl.clone();
 
   if (url.hostname.endsWith('.')) {
     url.hostname = url.hostname.slice(0, -1);
