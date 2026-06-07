@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 
-/**
- * Middleware to normalize FQDN (Fully Qualified Domain Name)
- * by removing a trailing dot from the hostname and redirecting (301).
- */
+
 export function middleware(request) {
   const url = new URL(request.url);
 
