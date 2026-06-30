@@ -74,9 +74,7 @@ const normalizeMembershipValue = (value) => {
 const getMembershipText = (user) => {
   const candidates = [
     user?.membership_label,
-    user?.membership_avatar_badge,
     user?.profile?.membership_label,
-    user?.profile?.membership_avatar_badge,
   ];
 
   for (const candidate of candidates) {
@@ -90,6 +88,50 @@ const getMembershipText = (user) => {
 };
 
 const shouldShowMembership = (user) => Boolean(getMembershipText(user));
+
+const getAvatarBadgeValue = (user) => {
+  const candidates = [
+    user?.membership_avatar_badge,
+    user?.profile?.membership_avatar_badge,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate !== undefined && candidate !== null) {
+      return candidate;
+    }
+  }
+  return null;
+};
+
+const getAvatarBadgeStatus = (user) => {
+  const rawValue = getAvatarBadgeValue(user);
+  if (rawValue === null || rawValue === undefined) return '';
+
+  if (typeof rawValue === 'string') {
+    const normalized = rawValue.trim().toLowerCase();
+    if (!normalized || ['0', 'false', 'none', 'null', 'undefined', 'no'].includes(normalized)) {
+      return '';
+    }
+    return rawValue;
+  }
+
+  if (typeof rawValue === 'boolean') {
+    return rawValue ? 'している' : '';
+  }
+
+  if (rawValue && typeof rawValue === 'object') {
+    return (
+      getAvatarBadgeStatus({ membership_avatar_badge: rawValue.label }) ||
+      getAvatarBadgeStatus({ membership_avatar_badge: rawValue.name }) ||
+      getAvatarBadgeStatus({ membership_avatar_badge: rawValue.text }) ||
+      ''
+    );
+  }
+
+  return '';
+};
+
+const shouldShowAvatarBadge = (user) => Boolean(getAvatarBadgeStatus(user));
 
 export default function Home() {
   const router = useRouter();
@@ -672,6 +714,15 @@ export default function Home() {
             {shouldShowMembership(userInfo) && (
               <p className="info">
                 <strong>メンバーシップ / Membership:</strong> {getMembershipText(userInfo)}
+              </p>
+            )}
+
+            {shouldShowAvatarBadge(userInfo) && (
+              <p className="info">
+                <strong>猫耳をアバターに表示してるか:</strong>{' '}
+                {getAvatarBadgeStatus(userInfo) === 'している'
+                  ? 'している'
+                  : `している (${getAvatarBadgeStatus(userInfo)})`}
               </p>
             )}
 
