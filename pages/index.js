@@ -107,6 +107,10 @@ const getAvatarBadgeStatus = (user) => {
   const rawValue = getAvatarBadgeValue(user);
   if (rawValue === null || rawValue === undefined) return '';
 
+  if (typeof rawValue === 'number') {
+    return rawValue > 0 ? 'している' : '';
+  }
+
   if (typeof rawValue === 'string') {
     const normalized = rawValue.trim().toLowerCase();
     if (!normalized || ['0', 'false', 'none', 'null', 'undefined', 'no'].includes(normalized)) {
