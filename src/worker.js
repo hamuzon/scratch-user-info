@@ -4,6 +4,7 @@ const jsonHeaders = {
 };
 
 const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
+const PROJECT_LIMIT = 12;
 
 function formatDatetime(datetimeString) {
   try {
@@ -19,6 +20,20 @@ function formatDatetime(datetimeString) {
   } catch {
     return '不明';
   }
+}
+
+function getProjectCount(userInfo) {
+  if (!userInfo) return null;
+
+  return (
+    userInfo?.profile?.stats?.project_count ??
+    userInfo?.profile?.stats?.projects ??
+    userInfo?.profile?.statistics?.project_count ??
+    userInfo?.profile?.statistics?.projects ??
+    userInfo?.stats?.project_count ??
+    userInfo?.project_count ??
+    null
+  );
 }
 
 async function getProjectAuthorUsername(projectId) {
@@ -98,8 +113,10 @@ async function handleApiRequest(request) {
   }
 
   try {
+    const page = Math.max(1, Number(body.page) || 1);
+    const offset = (page - 1) * PROJECT_LIMIT;
     const userUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`;
-    const projectsUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects`;
+    const projectsUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`;
 
     const [userRes, projectsRes] = await Promise.all([
       fetch(userUrl),
@@ -115,13 +132,22 @@ async function handleApiRequest(request) {
     if (projectsRes.ok) {
       projects = await projectsRes.json();
       projects = projects.map((project) => ({
-        ...project,
+        id: project.id,
+        title: project.title,
+        instructions: project.instructions,
+        description: project.description,
         published_date: formatDatetime(project.history?.shared),
         modified_date: formatDatetime(project.history?.modified),
       }));
     }
 
-    return new Response(JSON.stringify({ user_info: userInfo, projects, resolved_username: resolvedUsername }), {
+    return new Response(JSON.stringify({
+      user_info: userInfo,
+      projects,
+      project_count: getProjectCount(userInfo),
+      current_page: page,
+      resolved_username: resolvedUsername,
+    }), {
       status: 200,
       headers: jsonHeaders,
     });
