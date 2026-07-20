@@ -11,12 +11,16 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAGES: "true"
+      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      NEXT_PUBLIC_API_BASE_URL: https://scratch-user-info.vercel.app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,6 +30,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
@@ -33,16 +38,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Clean previous export output
+        run: rm -rf ./out
+
       - name: Build static site
         run: npm run build
-        env:
-          GITHUB_PAGES: 'true'
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-          NEXT_PUBLIC_API_BASE_URL: https://scratch-user-info.vercel.app
 
       - name: Prepare GitHub Pages artifact
         run: |
-          mkdir -p ./out
+          test -f ./out/index.html
+          test -f ./out/404.html
           touch ./out/.nojekyll
           ls -la ./out
 
