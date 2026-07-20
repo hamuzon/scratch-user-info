@@ -14,6 +14,7 @@ const toHref = (value) => {
 };
 
 const PROJECT_LIMIT = 10;
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
 
 const formatJoinedDate = (joined) => {
   if (!joined) {
@@ -185,7 +186,7 @@ export default function Home() {
     }
 
     try {
-      const apiPath = `${router.basePath || ''}/api/user`;
+      const apiPath = `${API_BASE_URL || router.basePath || ''}/api/user`;
       const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,8 +199,10 @@ export default function Home() {
         setProjects(data.projects || []);
         setProjectCount(data.project_count ?? null);
         setCurrentPage(data.current_page || pageNumber);
-        if (options.syncUrl) {
-          updateUrl(data.resolved_username || targetUsername, data.current_page || pageNumber, options.historyMethod || 'push');
+        const responsePage = data.current_page || pageNumber;
+        const responseUsername = data.resolved_username || targetUsername;
+        if (options.syncUrl || responsePage !== pageNumber || responseUsername !== targetUsername) {
+          updateUrl(responseUsername, responsePage, options.historyMethod || (options.syncUrl ? 'push' : 'replace'));
         }
       } else {
         setError(data.error || 'ユーザー情報の取得に失敗しました。');
@@ -692,6 +695,17 @@ export default function Home() {
           background: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
+        .project-total-summary {
+          margin-top: 18px;
+          padding: 14px 16px;
+          border-radius: 10px;
+          background: rgba(0, 255, 204, 0.12);
+          border: 1px solid rgba(0, 255, 204, 0.28);
+          color: #e0f7fa;
+          font-size: 15px;
+          text-align: center;
+        }
+
         .pagination-summary {
           display: flex;
           justify-content: space-between;
@@ -901,6 +915,12 @@ export default function Home() {
         )}
 
         <div style={{ marginTop: 25 }}>
+          {userInfo && (
+            <div className="project-total-summary">
+              <strong>全作品数:</strong> {projectCountText}
+            </div>
+          )}
+
           {showPagination && (
             <>
               <div className="pagination-summary">
@@ -1018,6 +1038,12 @@ export default function Home() {
                 )}
               </div>
             ))}
+
+          {userInfo && (
+            <div className="project-total-summary">
+              <strong>全作品数:</strong> {projectCountText}
+            </div>
+          )}
 
           {showPagination && (
             <>
