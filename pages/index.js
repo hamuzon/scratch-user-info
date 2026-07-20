@@ -1,5 +1,5 @@
 // pages/index.js
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -149,13 +149,24 @@ export default function Home() {
   const [projectCount, setProjectCount] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const joinedDate = useMemo(() => formatJoinedDate(userInfo?.history?.joined), [userInfo?.history?.joined]);
-  const totalPages = projectCount ? Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT)) : null;
+  const totalPages = projectCount !== null ? Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT)) : null;
+  const hasMoreProjects = projects.length === PROJECT_LIMIT;
+  const showPagination = totalPages ? totalPages > 1 : currentPage > 1 || hasMoreProjects;
+  const canGoPrev = currentPage > 1;
+  const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
+  const projectCountText =
+    projectCount !== null
+      ? `${projectCount}件`
+      : projects.length > 0
+      ? `${projects.length}${hasMoreProjects ? '以上' : ''}件`
+      : '0件';
 
-  const loadUserInfo = async (pageNumber = 1) => {
+  const loadUserInfo = async (pageNumber = 1, usernameOverride = null) => {
     setError('');
     setLoading(true);
+    const targetUsername = usernameOverride || username;
 
-    if (!username) {
+    if (!targetUsername) {
       setError('ユーザー名を入力してください。');
       setLoading(false);
       return;
@@ -166,7 +177,7 @@ export default function Home() {
       const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, page: pageNumber }),
+        body: JSON.stringify({ username: targetUsername, page: pageNumber }),
       });
       const data = await res.json();
 
@@ -194,6 +205,71 @@ export default function Home() {
     setCurrentPage(1);
     await loadUserInfo(1);
   };
+
+  const getQueryParams = (query) => {
+    const usernameKeys = ['n', 'user', 'name', 'username', 'u'];
+    const pageKeys = ['p', 'page'];
+    let parsedUsername = '';
+    let parsedPage = 1;
+
+    if (!query || typeof query !== 'object') {
+      return { username: '', page: 1 };
+    }
+
+    const lowerCaseQuery = Object.entries(query).reduce((acc, [key, value]) => {
+      acc[key.toLowerCase()] = value;
+      return acc;
+    }, {});
+
+    for (const key of usernameKeys) {
+      const value = lowerCaseQuery[key];
+      if (value) {
+        const queryValue = Array.isArray(value) ? value[0] : value;
+        const trimmed = String(queryValue).trim();
+        if (trimmed) {
+          parsedUsername = trimmed;
+          break;
+        }
+      }
+    }
+
+    for (const key of pageKeys) {
+      const value = lowerCaseQuery[key];
+      if (value) {
+        const queryValue = Array.isArray(value) ? value[0] : value;
+        const parsed = Number(queryValue);
+        if (!Number.isNaN(parsed) && parsed >= 1) {
+          parsedPage = parsed;
+          break;
+        }
+      }
+    }
+
+    return { username: parsedUsername, page: parsedPage };
+  };
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const { username: queryUsername, page: queryPage } = getQueryParams(router.query);
+    if (!queryUsername) {
+      return;
+    }
+
+    if (queryUsername === username && currentPage === queryPage && (userInfo || projects.length > 0)) {
+      return;
+    }
+
+    setUsername(queryUsername);
+    setUserInfo(null);
+    setProjects([]);
+    setProjectCount(null);
+    setCurrentPage(queryPage);
+    loadUserInfo(queryPage, queryUsername);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query]);
 
   const reset = () => {
     setUsername('');
@@ -798,50 +874,51 @@ export default function Home() {
         )}
 
         <div style={{ marginTop: 25 }}>
-          {projectCount !== null && (
-            <div className="pagination-summary">
-              <span>
-                <strong>作品数:</strong> {projectCount}件
-              </span>
-              {projectCount > 0 && (
+          {showPagination && (
+            <>
+              <div className="pagination-summary">
                 <span>
-                  <strong>ページ:</strong> {currentPage} / {totalPages}
+                  <strong>作品数:</strong> {projectCountText}
                 </span>
-              )}
-            </div>
-          )}
+                <span>
+                  <strong>ページ:</strong> {currentPage}
+                  {totalPages ? ` / ${totalPages}` : ''}
+                </span>
+              </div>
 
-          {totalPages > 1 && (
-            <div className="pagination-buttons">
-              <button
-                type="button"
-                onClick={() => loadUserInfo(1)}
-                disabled={loading || currentPage <= 1}
-              >
-                最初のページ
-              </button>
-              <button
-                type="button"
-                onClick={() => loadUserInfo(currentPage - 1)}
-                disabled={loading || currentPage <= 1}
-              >
-                前のページ
-              </button>
-              <button
-                type="button"
-                onClick={() => loadUserInfo(currentPage + 1)}
-                disabled={loading || currentPage >= totalPages}
-              >
-                次のページ
-              </button>
-              <button
-                type="button"
-                onClick={() => loadUserInfo(totalPages)}
-                disabled={loading || currentPage >= totalPages}
-              >
-                最後のページ
-              </button>
-            </div>
+              <div className="pagination-buttons">
+                <button
+                  type="button"
+                  onClick={() => loadUserInfo(1)}
+                  disabled={loading || !canGoPrev}
+                >
+                  最初のページ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadUserInfo(currentPage - 1)}
+                  disabled={loading || !canGoPrev}
+                >
+                  前のページ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadUserInfo(currentPage + 1)}
+                  disabled={loading || !canGoNext}
+                >
+                  次のページ
+                </button>
+                {totalPages !== null && (
+                  <button
+                    type="button"
+                    onClick={() => loadUserInfo(totalPages)}
+                    disabled={loading || !canGoNext}
+                  >
+                    最後のページ
+                  </button>
+                )}
+              </div>
+            </>
           )}
 
           {projects.length > 0 &&
@@ -915,50 +992,51 @@ export default function Home() {
               </div>
             ))}
 
-          {projectCount !== null && (
-            <div className="pagination-summary">
-              <span>
-                <strong>作品数:</strong> {projectCount}件
-              </span>
-              {projectCount > 0 && (
+          {showPagination && (
+            <>
+              <div className="pagination-summary">
                 <span>
-                  <strong>ページ:</strong> {currentPage} / {totalPages}
+                  <strong>作品数:</strong> {projectCountText}
                 </span>
-              )}
-            </div>
-          )}
+                <span>
+                  <strong>ページ:</strong> {currentPage}
+                  {totalPages ? ` / ${totalPages}` : ''}
+                </span>
+              </div>
 
-          {totalPages > 1 && (
-            <div className="pagination-buttons">
-              <button
-                type="button"
-                onClick={() => loadUserInfo(1)}
-                disabled={loading || currentPage <= 1}
-              >
-                最初のページ
-              </button>
-              <button
-                type="button"
-                onClick={() => loadUserInfo(currentPage - 1)}
-                disabled={loading || currentPage <= 1}
-              >
-                前のページ
-              </button>
-              <button
-                type="button"
-                onClick={() => loadUserInfo(currentPage + 1)}
-                disabled={loading || currentPage >= totalPages}
-              >
-                次のページ
-              </button>
-              <button
-                type="button"
-                onClick={() => loadUserInfo(totalPages)}
-                disabled={loading || currentPage >= totalPages}
-              >
-                最後のページ
-              </button>
-            </div>
+              <div className="pagination-buttons">
+                <button
+                  type="button"
+                  onClick={() => loadUserInfo(1)}
+                  disabled={loading || !canGoPrev}
+                >
+                  最初のページ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadUserInfo(currentPage - 1)}
+                  disabled={loading || !canGoPrev}
+                >
+                  前のページ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadUserInfo(currentPage + 1)}
+                  disabled={loading || !canGoNext}
+                >
+                  次のページ
+                </button>
+                {totalPages !== null && (
+                  <button
+                    type="button"
+                    onClick={() => loadUserInfo(totalPages)}
+                    disabled={loading || !canGoNext}
+                  >
+                    最後のページ
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </div>
       </main>
