@@ -13,7 +13,7 @@ const toHref = (value) => {
   return `https://${value}`;
 };
 
-const PROJECT_LIMIT = 12;
+const PROJECT_LIMIT = 10;
 
 const formatJoinedDate = (joined) => {
   if (!joined) {
@@ -154,14 +154,26 @@ export default function Home() {
   const showPagination = totalPages ? totalPages > 1 : currentPage > 1 || hasMoreProjects;
   const canGoPrev = currentPage > 1;
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
-  const projectCountText =
-    projectCount !== null
-      ? `${projectCount}件`
-      : projects.length > 0
-      ? `${projects.length}${hasMoreProjects ? '以上' : ''}件`
-      : '0件';
+  const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
 
-  const loadUserInfo = async (pageNumber = 1, usernameOverride = null) => {
+  const updateUrl = (targetUsername, pageNumber, method = 'push') => {
+    if (!router.isReady || !targetUsername) {
+      return;
+    }
+
+    const query = { n: targetUsername };
+    if (pageNumber > 1) {
+      query.p = String(pageNumber);
+    }
+
+    router[method](
+      { pathname: router.pathname, query },
+      undefined,
+      { shallow: true, scroll: false }
+    );
+  };
+
+  const loadUserInfo = async (pageNumber = 1, usernameOverride = null, options = {}) => {
     setError('');
     setLoading(true);
     const targetUsername = usernameOverride || username;
@@ -186,6 +198,9 @@ export default function Home() {
         setProjects(data.projects || []);
         setProjectCount(data.project_count ?? null);
         setCurrentPage(data.current_page || pageNumber);
+        if (options.syncUrl) {
+          updateUrl(data.resolved_username || targetUsername, data.current_page || pageNumber, options.historyMethod || 'push');
+        }
       } else {
         setError(data.error || 'ユーザー情報の取得に失敗しました。');
       }
@@ -203,7 +218,7 @@ export default function Home() {
     setProjects([]);
     setProjectCount(null);
     setCurrentPage(1);
-    await loadUserInfo(1);
+    await loadUserInfo(1, null, { syncUrl: true });
   };
 
   const getQueryParams = (query) => {
@@ -213,7 +228,10 @@ export default function Home() {
     let parsedPage = 1;
 
     if (!query || typeof query !== 'object') {
-      return { username: '', page: 1 };
+      if (typeof window === 'undefined') {
+        return { username: '', page: 1 };
+      }
+      query = Object.fromEntries(new URLSearchParams(window.location.search));
     }
 
     const lowerCaseQuery = Object.entries(query).reduce((acc, [key, value]) => {
@@ -253,7 +271,9 @@ export default function Home() {
       return;
     }
 
-    const { username: queryUsername, page: queryPage } = getQueryParams(router.query);
+    const { username: queryUsername, page: queryPage } = getQueryParams(
+      Object.keys(router.query || {}).length > 0 ? router.query : null
+    );
     if (!queryUsername) {
       return;
     }
@@ -279,6 +299,9 @@ export default function Home() {
     setCurrentPage(1);
     setError('');
     setLoading(false);
+    if (router.isReady) {
+      router.push(router.pathname, undefined, { shallow: true, scroll: false });
+    }
   };
 
   const renderTextWithLinks = (text) => {
@@ -819,6 +842,10 @@ export default function Home() {
               </a>
             </p>
 
+            <p className="info">
+              <strong>作品数:</strong> {projectCountText}
+            </p>
+
             <div className="meta-row">
               {userInfo.profile?.country && (
                 <p className="info">
@@ -889,21 +916,21 @@ export default function Home() {
               <div className="pagination-buttons">
                 <button
                   type="button"
-                  onClick={() => loadUserInfo(1)}
+                  onClick={() => loadUserInfo(1, null, { syncUrl: true })}
                   disabled={loading || !canGoPrev}
                 >
                   最初のページ
                 </button>
                 <button
                   type="button"
-                  onClick={() => loadUserInfo(currentPage - 1)}
+                  onClick={() => loadUserInfo(currentPage - 1, null, { syncUrl: true })}
                   disabled={loading || !canGoPrev}
                 >
                   前のページ
                 </button>
                 <button
                   type="button"
-                  onClick={() => loadUserInfo(currentPage + 1)}
+                  onClick={() => loadUserInfo(currentPage + 1, null, { syncUrl: true })}
                   disabled={loading || !canGoNext}
                 >
                   次のページ
@@ -911,7 +938,7 @@ export default function Home() {
                 {totalPages !== null && (
                   <button
                     type="button"
-                    onClick={() => loadUserInfo(totalPages)}
+                    onClick={() => loadUserInfo(totalPages, null, { syncUrl: true })}
                     disabled={loading || !canGoNext}
                   >
                     最後のページ
@@ -1007,21 +1034,21 @@ export default function Home() {
               <div className="pagination-buttons">
                 <button
                   type="button"
-                  onClick={() => loadUserInfo(1)}
+                  onClick={() => loadUserInfo(1, null, { syncUrl: true })}
                   disabled={loading || !canGoPrev}
                 >
                   最初のページ
                 </button>
                 <button
                   type="button"
-                  onClick={() => loadUserInfo(currentPage - 1)}
+                  onClick={() => loadUserInfo(currentPage - 1, null, { syncUrl: true })}
                   disabled={loading || !canGoPrev}
                 >
                   前のページ
                 </button>
                 <button
                   type="button"
-                  onClick={() => loadUserInfo(currentPage + 1)}
+                  onClick={() => loadUserInfo(currentPage + 1, null, { syncUrl: true })}
                   disabled={loading || !canGoNext}
                 >
                   次のページ
@@ -1029,7 +1056,7 @@ export default function Home() {
                 {totalPages !== null && (
                   <button
                     type="button"
-                    onClick={() => loadUserInfo(totalPages)}
+                    onClick={() => loadUserInfo(totalPages, null, { syncUrl: true })}
                     disabled={loading || !canGoNext}
                   >
                     最後のページ
