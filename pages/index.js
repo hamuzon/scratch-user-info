@@ -15,6 +15,16 @@ const toHref = (value) => {
 
 const PROJECT_LIMIT = 10;
 
+const normalizeApiBaseUrl = (value) => {
+  if (!value) {
+    return '';
+  }
+
+  return value.replace(/\/+$/, '');
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL || '');
+
 const formatJoinedDate = (joined) => {
   if (!joined) {
     return { short: '不明', detail: '不明' };
@@ -156,21 +166,60 @@ export default function Home() {
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
   const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
 
-  const updateUrl = (targetUsername, pageNumber, method = 'push') => {
-    if (!router.isReady || !targetUsername) {
-      return;
-    }
-
+  const getUserInfoUrl = (targetUsername, pageNumber) => {
     const query = { n: targetUsername };
     if (pageNumber > 1) {
       query.p = String(pageNumber);
     }
 
+    return { pathname: router.pathname, query };
+  };
+
+  const ensureBrowserUrl = (targetUsername, pageNumber, method = 'push') => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('n', targetUsername);
+    url.searchParams.delete('user');
+    url.searchParams.delete('name');
+    url.searchParams.delete('username');
+    url.searchParams.delete('u');
+    url.searchParams.delete('page');
+
+    if (pageNumber > 1) {
+      url.searchParams.set('p', String(pageNumber));
+    } else {
+      url.searchParams.delete('p');
+    }
+
+    const historyMethod = method === 'replace' ? 'replaceState' : 'pushState';
+    window.history[historyMethod](window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const updateUrl = (targetUsername, pageNumber, method = 'push') => {
+    if (!router.isReady || !targetUsername) {
+      return;
+    }
+
+    const expectedPageParam = pageNumber > 1 ? String(pageNumber) : null;
+
     router[method](
-      { pathname: router.pathname, query },
+      getUserInfoUrl(targetUsername, pageNumber),
       undefined,
       { shallow: true, scroll: false }
-    );
+    ).finally(() => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      const currentUrl = new URL(window.location.href);
+      const currentPageParam = currentUrl.searchParams.get('p');
+      if (currentUrl.searchParams.get('n') !== targetUsername || currentPageParam !== expectedPageParam) {
+        ensureBrowserUrl(targetUsername, pageNumber, method);
+      }
+    });
   };
 
   const loadUserInfo = async (pageNumber = 1, usernameOverride = null, options = {}) => {
@@ -185,7 +234,7 @@ export default function Home() {
     }
 
     try {
-      const apiPath = `${router.basePath || ''}/api/user`;
+      const apiPath = `${API_BASE_URL || router.basePath || ''}/api/user`;
       const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -287,7 +336,7 @@ export default function Home() {
     setProjects([]);
     setProjectCount(null);
     setCurrentPage(queryPage);
-    loadUserInfo(queryPage, queryUsername);
+    loadUserInfo(queryPage, queryUsername, { syncUrl: true, historyMethod: 'replace' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, router.query]);
 

@@ -1,7 +1,7 @@
 // pages/api/user.js
 
 const SCRATCH_API_BASE = 'https://api.scratch.mit.edu';
-const PROJECT_LIMIT = 12;
+const PROJECT_LIMIT = 10;
 
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -38,24 +38,25 @@ export default async function handler(req, res) {
     }
 
     const encodedUsername = encodeURIComponent(resolvedUsername);
-    const page = Math.max(1, Number(body.page) || 1);
-    const offset = (page - 1) * PROJECT_LIMIT;
+    const requestedPage = Math.max(1, Math.floor(Number(body.page)) || 1);
 
-    const [userRes, projectsRes] = await Promise.all([
-      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`),
-      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`),
-    ]);
+    const userRes = await fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`);
 
     if (!userRes.ok) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const [userInfo, rawProjects] = await Promise.all([
-      userRes.json(),
-      projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
-    ]);
-
+    const userInfo = await userRes.json();
     const projectCount = getProjectCount(userInfo);
+    const totalPages = getTotalPages(projectCount);
+    let page = totalPages !== null ? Math.min(requestedPage, totalPages) : requestedPage;
+    let rawProjects = await fetchProjectsPage(encodedUsername, page);
+
+    if (totalPages === null && requestedPage > 1 && rawProjects.length === 0) {
+      page = await findLastProjectPage(encodedUsername, requestedPage);
+      rawProjects = page === requestedPage ? rawProjects : await fetchProjectsPage(encodedUsername, page);
+    }
+
     const projects = rawProjects.map((project) => ({
       id: project.id,
       title: project.title,
@@ -71,6 +72,8 @@ export default async function handler(req, res) {
       projects,
       project_count: projectCount,
       current_page: page,
+      requested_page: requestedPage,
+      total_pages: totalPages,
       resolved_username: resolvedUsername,
     });
   } catch (error) {
@@ -113,6 +116,32 @@ async function readRawBody(req) {
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
+}
+
+async function fetchProjectsPage(encodedUsername, page) {
+  const offset = (page - 1) * PROJECT_LIMIT;
+  const projectsRes = await fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`);
+  return projectsRes.ok ? projectsRes.json() : [];
+}
+
+async function findLastProjectPage(encodedUsername, requestedPage) {
+  let low = 1;
+  let high = requestedPage - 1;
+  let lastPage = 1;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const projects = await fetchProjectsPage(encodedUsername, mid);
+
+    if (projects.length > 0) {
+      lastPage = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return lastPage;
 }
 
 async function resolveUsername(input) {
@@ -185,6 +214,14 @@ function getProjectCount(userInfo) {
     userInfo?.project_count ??
     null
   );
+}
+
+function getTotalPages(projectCount) {
+  if (typeof projectCount !== 'number' || Number.isNaN(projectCount)) {
+    return null;
+  }
+
+  return Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT));
 }
 
 function formatDatetime(datetimeString) {

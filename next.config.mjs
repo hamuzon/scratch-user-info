@@ -13,12 +13,9 @@ const normalizeBasePath = (value) => {
 };
 
 const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  basePath: basePath,
-  assetPrefix: basePath || undefined,
-  poweredByHeader: false,
+const cacheHeaders = {
   async headers() {
     return [
       {
@@ -31,6 +28,19 @@ const nextConfig = {
       },
     ];
   },
+};
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  basePath: basePath,
+  assetPrefix: basePath || undefined,
+  output: isGitHubPages ? 'export' : undefined,
+  images: {
+    unoptimized: true,
+  },
+  trailingSlash: isGitHubPages,
+  poweredByHeader: false,
+  ...(isGitHubPages ? {} : cacheHeaders),
 };
 
 export default nextConfig;
