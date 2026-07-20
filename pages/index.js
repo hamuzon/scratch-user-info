@@ -165,11 +165,6 @@ export default function Home() {
   const canGoPrev = currentPage > 1;
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
   const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
-  const shownStart = projects.length > 0 ? (currentPage - 1) * PROJECT_LIMIT + 1 : 0;
-  const shownEnd = projects.length > 0 ? shownStart + projects.length - 1 : 0;
-  const projectRangeText = projects.length > 0
-    ? `${shownStart}〜${shownEnd}件目${projectCount !== null ? ` / 全${projectCount}件` : ''}`
-    : projectCount !== null ? `全${projectCount}件` : '作品なし';
 
   const updateUrl = (targetUsername, pageNumber, method = 'push') => {
     if (!router.isReady || !targetUsername) {
@@ -920,7 +915,7 @@ export default function Home() {
             <>
               <div className="pagination-summary">
                 <span>
-                  <strong>表示:</strong> {projectRangeText}
+                  <strong>作品数:</strong> {projectCountText}
                 </span>
                 <span>
                   <strong>ページ:</strong> {currentPage}
@@ -1038,7 +1033,7 @@ export default function Home() {
             <>
               <div className="pagination-summary">
                 <span>
-                  <strong>表示:</strong> {projectRangeText}
+                  <strong>作品数:</strong> {projectCountText}
                 </span>
                 <span>
                   <strong>ページ:</strong> {currentPage}

@@ -49,11 +49,14 @@ export default async function handler(req, res) {
     const userInfo = await userRes.json();
     const projectCount = getProjectCount(userInfo);
     const totalPages = getTotalPages(projectCount);
-    const page = totalPages !== null ? Math.min(requestedPage, totalPages) : requestedPage;
-    const offset = (page - 1) * PROJECT_LIMIT;
+    let page = totalPages !== null ? Math.min(requestedPage, totalPages) : requestedPage;
+    let rawProjects = await fetchProjectsPage(encodedUsername, page);
 
-    const projectsRes = await fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`);
-    const rawProjects = projectsRes.ok ? await projectsRes.json() : [];
+    if (totalPages === null && requestedPage > 1 && rawProjects.length === 0) {
+      page = await findLastProjectPage(encodedUsername, requestedPage);
+      rawProjects = page === requestedPage ? rawProjects : await fetchProjectsPage(encodedUsername, page);
+    }
+
     const projects = rawProjects.map((project) => ({
       id: project.id,
       title: project.title,
@@ -113,6 +116,32 @@ async function readRawBody(req) {
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
+}
+
+async function fetchProjectsPage(encodedUsername, page) {
+  const offset = (page - 1) * PROJECT_LIMIT;
+  const projectsRes = await fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`);
+  return projectsRes.ok ? projectsRes.json() : [];
+}
+
+async function findLastProjectPage(encodedUsername, requestedPage) {
+  let low = 1;
+  let high = requestedPage - 1;
+  let lastPage = 1;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const projects = await fetchProjectsPage(encodedUsername, mid);
+
+    if (projects.length > 0) {
+      lastPage = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return lastPage;
 }
 
 async function resolveUsername(input) {
