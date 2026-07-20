@@ -1,6 +1,14 @@
+const corsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-allow-headers': 'Content-Type',
+  'access-control-max-age': '86400',
+};
+
 const jsonHeaders = {
   'content-type': 'application/json; charset=UTF-8',
   'cache-control': 'no-store',
+  ...corsHeaders,
 };
 
 const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
@@ -114,6 +122,10 @@ async function resolveUsername(input) {
 }
 
 async function handleApiRequest(request) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: jsonHeaders });
   }
