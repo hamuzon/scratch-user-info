@@ -1,7 +1,7 @@
 // pages/api/user.js
 
 const SCRATCH_API_BASE = 'https://api.scratch.mit.edu';
-const PROJECT_LIMIT = 12;
+const PROJECT_LIMIT = 10;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
