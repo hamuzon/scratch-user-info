@@ -194,12 +194,26 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok) {
+        const projectsArray = data.projects || [];
+        const totalProjectCount = data.project_count ?? null;
+        const receivedPage = data.current_page || pageNumber;
+
+        // プロジェクトが0件で、かつ指定されたページが有効な範囲外の場合、最後のページにリダイレクト
+        if (projectsArray.length === 0 && totalProjectCount !== null && totalProjectCount > 0 && !options.redirected) {
+          const calculatedTotalPages = Math.ceil(totalProjectCount / PROJECT_LIMIT);
+          if (pageNumber > calculatedTotalPages) {
+            // 無限ループを防ぐため、redirectedフラグを設定
+            await loadUserInfo(calculatedTotalPages, usernameOverride, { ...options, redirected: true });
+            return;
+          }
+        }
+
         setUserInfo(data.user_info || null);
-        setProjects(data.projects || []);
-        setProjectCount(data.project_count ?? null);
-        setCurrentPage(data.current_page || pageNumber);
+        setProjects(projectsArray);
+        setProjectCount(totalProjectCount);
+        setCurrentPage(receivedPage);
         if (options.syncUrl) {
-          updateUrl(data.resolved_username || targetUsername, data.current_page || pageNumber, options.historyMethod || 'push');
+          updateUrl(data.resolved_username || targetUsername, receivedPage, options.historyMethod || 'push');
         }
       } else {
         setError(data.error || 'ユーザー情報の取得に失敗しました。');
