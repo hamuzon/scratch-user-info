@@ -1,5 +1,4 @@
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 export default function Custom404() {
@@ -149,9 +148,9 @@ export default function Custom404() {
           アクセスしようとしたページは削除されたか、<br />
           URLが間違っている可能性があります。
         </p>
-        <Link href={basePath || '/'} className="home-button">
+        <a href={basePath || '/'} className="home-button">
           ホームへ戻る
-        </Link>
+        </a>
       </main>
     </>
   );

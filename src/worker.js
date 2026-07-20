@@ -264,6 +264,10 @@ export default {
       return handleApiRequest(request);
     }
 
+    if (url.pathname.startsWith('/_next/data/')) {
+      return Response.redirect(new URL(url.origin).toString(), 302);
+    }
+
     return proxyToNext(request);
   }
 };
