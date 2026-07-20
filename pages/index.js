@@ -139,6 +139,101 @@ const getAvatarBadgeStatus = (user) => {
 
 const shouldShowAvatarBadge = (user) => Boolean(getAvatarBadgeStatus(user));
 
+// Scratch API helper functions
+const SCRATCH_API_BASE = 'https://api.scratch.mit.edu';
+
+const getProjectCount = (userInfo) => {
+  if (!userInfo) return null;
+
+  return (
+    userInfo?.profile?.stats?.project_count ??
+    userInfo?.profile?.stats?.projects ??
+    userInfo?.profile?.statistics?.project_count ??
+    userInfo?.profile?.statistics?.projects ??
+    userInfo?.stats?.project_count ??
+    userInfo?.project_count ??
+    null
+  );
+};
+
+const formatDatetime = (datetimeString) => {
+  try {
+    const date = new Date(datetimeString);
+    return date.toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '不明';
+  }
+};
+
+const getProjectAuthorUsername = async (projectId) => {
+  try {
+    const projectRes = await fetch(`${SCRATCH_API_BASE}/projects/${projectId}`);
+    if (!projectRes.ok) {
+      return '';
+    }
+
+    const project = await projectRes.json();
+    return project?.author?.username || '';
+  } catch {
+    return '';
+  }
+};
+
+const resolveUsername = async (input) => {
+  const trimmed = input.trim();
+  const normalized = trimmed
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/^\/+/, '');
+
+  const scratchUserMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
+  if (scratchUserMatch?.[1]) {
+    return scratchUserMatch[1];
+  }
+
+  const scratchApiUserMatch = normalized.match(/^(?:api\.scratch\.mit\.edu\/)?users\/([A-Za-z0-9_-]+)(?:[/?#].*)?$/i);
+  if (scratchApiUserMatch?.[1]) {
+    return scratchApiUserMatch[1];
+  }
+
+  const scratchProjectMatch = normalized.match(/^(?:scratch\.mit\.edu\/)?projects\/(\d+)(?:[/?#].*)?$/i);
+  if (scratchProjectMatch?.[1]) {
+    return getProjectAuthorUsername(scratchProjectMatch[1]);
+  }
+
+  const turboWarpProjectMatch = normalized.match(/^(?:turbowarp\.org\/)?(\d+)(?:[/?#].*)?$/i);
+  if (turboWarpProjectMatch?.[1]) {
+    return getProjectAuthorUsername(turboWarpProjectMatch[1]);
+  }
+
+  const singleSegmentMatch = normalized.match(/^([A-Za-z0-9_-]{3,20})(?:[/?#].*)?$/);
+  if (singleSegmentMatch?.[1]) {
+    const candidate = singleSegmentMatch[1];
+
+    if (/^\d+$/.test(candidate)) {
+      // It might be a project ID, let's check it in parallel with treating it as a username
+      const [authorFromProject, candidateExists] = await Promise.all([
+        getProjectAuthorUsername(candidate),
+        fetch(`${SCRATCH_API_BASE}/users/${encodeURIComponent(candidate)}`).then(r => r.ok)
+      ]);
+      
+      if (candidateExists) return candidate;
+      return authorFromProject || candidate;
+    }
+
+    return candidate;
+  }
+
+  return '';
+};
+
 export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState('');
@@ -185,41 +280,61 @@ export default function Home() {
     }
 
     try {
-      const apiPath = `${router.basePath || ''}/api/user`;
-      const res = await fetch(apiPath, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: targetUsername, page: pageNumber }),
-      });
-      const data = await res.json();
+      const resolvedUsername = await resolveUsername(targetUsername);
+      if (!resolvedUsername) {
+        setError('ユーザー名を解決できませんでした。');
+        setLoading(false);
+        return;
+      }
 
-      if (res.ok) {
-        const projectsArray = data.projects || [];
-        const totalProjectCount = data.project_count ?? null;
-        const receivedPage = data.current_page || pageNumber;
+      const encodedUsername = encodeURIComponent(resolvedUsername);
+      const offset = (pageNumber - 1) * PROJECT_LIMIT;
 
-        // プロジェクトが0件で、かつ指定されたページが有効な範囲外の場合、最後のページにリダイレクト
-        if (projectsArray.length === 0 && totalProjectCount !== null && totalProjectCount > 0 && !options.redirected) {
-          const calculatedTotalPages = Math.ceil(totalProjectCount / PROJECT_LIMIT);
-          if (pageNumber > calculatedTotalPages) {
-            // 無限ループを防ぐため、redirectedフラグを設定
-            await loadUserInfo(calculatedTotalPages, usernameOverride, { ...options, redirected: true });
-            return;
-          }
+      const [userRes, projectsRes] = await Promise.all([
+        fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`),
+        fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`),
+      ]);
+
+      if (!userRes.ok) {
+        setError('ユーザーが見つかりません。');
+        setLoading(false);
+        return;
+      }
+
+      const [userInfo, rawProjects] = await Promise.all([
+        userRes.json(),
+        projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
+      ]);
+
+      const projectCount = getProjectCount(userInfo);
+      const projectsArray = rawProjects.map((project) => ({
+        id: project.id,
+        title: project.title,
+        instructions: project.instructions,
+        description: project.description,
+        published_date: formatDatetime(project.history?.shared),
+        modified_date: formatDatetime(project.history?.modified),
+      }));
+
+      // プロジェクトが0件で、かつ指定されたページが有効な範囲外の場合、最後のページにリダイレクト
+      if (projectsArray.length === 0 && projectCount !== null && projectCount > 0 && !options.redirected) {
+        const calculatedTotalPages = Math.ceil(projectCount / PROJECT_LIMIT);
+        if (pageNumber > calculatedTotalPages) {
+          // 無限ループを防ぐため、redirectedフラグを設定
+          await loadUserInfo(calculatedTotalPages, usernameOverride, { ...options, redirected: true });
+          return;
         }
+      }
 
-        setUserInfo(data.user_info || null);
-        setProjects(projectsArray);
-        setProjectCount(totalProjectCount);
-        setCurrentPage(receivedPage);
-        if (options.syncUrl) {
-          updateUrl(data.resolved_username || targetUsername, receivedPage, options.historyMethod || 'push');
-        }
-      } else {
-        setError(data.error || 'ユーザー情報の取得に失敗しました。');
+      setUserInfo(userInfo);
+      setProjects(projectsArray);
+      setProjectCount(projectCount);
+      setCurrentPage(pageNumber);
+      if (options.syncUrl) {
+        updateUrl(resolvedUsername, pageNumber, options.historyMethod || 'push');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Load User Info Error:', error);
       setError('通信エラーが発生しました。');
     } finally {
       setLoading(false);
