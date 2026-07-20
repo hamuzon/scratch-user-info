@@ -166,21 +166,60 @@ export default function Home() {
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
   const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
 
-  const updateUrl = (targetUsername, pageNumber, method = 'push') => {
-    if (!router.isReady || !targetUsername) {
-      return;
-    }
-
+  const getUserInfoUrl = (targetUsername, pageNumber) => {
     const query = { n: targetUsername };
     if (pageNumber > 1) {
       query.p = String(pageNumber);
     }
 
+    return { pathname: router.pathname, query };
+  };
+
+  const ensureBrowserUrl = (targetUsername, pageNumber, method = 'push') => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('n', targetUsername);
+    url.searchParams.delete('user');
+    url.searchParams.delete('name');
+    url.searchParams.delete('username');
+    url.searchParams.delete('u');
+    url.searchParams.delete('page');
+
+    if (pageNumber > 1) {
+      url.searchParams.set('p', String(pageNumber));
+    } else {
+      url.searchParams.delete('p');
+    }
+
+    const historyMethod = method === 'replace' ? 'replaceState' : 'pushState';
+    window.history[historyMethod](window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const updateUrl = (targetUsername, pageNumber, method = 'push') => {
+    if (!router.isReady || !targetUsername) {
+      return;
+    }
+
+    const expectedPageParam = pageNumber > 1 ? String(pageNumber) : null;
+
     router[method](
-      { pathname: router.pathname, query },
+      getUserInfoUrl(targetUsername, pageNumber),
       undefined,
       { shallow: true, scroll: false }
-    );
+    ).finally(() => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      const currentUrl = new URL(window.location.href);
+      const currentPageParam = currentUrl.searchParams.get('p');
+      if (currentUrl.searchParams.get('n') !== targetUsername || currentPageParam !== expectedPageParam) {
+        ensureBrowserUrl(targetUsername, pageNumber, method);
+      }
+    });
   };
 
   const loadUserInfo = async (pageNumber = 1, usernameOverride = null, options = {}) => {
