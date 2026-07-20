@@ -4,7 +4,7 @@ const jsonHeaders = {
 };
 
 const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
-const PROJECT_LIMIT = 12;
+const PROJECT_LIMIT = 10;
 
 function formatDatetime(datetimeString) {
   try {
@@ -34,6 +34,29 @@ function getProjectCount(userInfo) {
     userInfo?.project_count ??
     null
   );
+}
+
+async function getTotalProjectCount(username) {
+  const countLimit = 40;
+  let total = 0;
+
+  while (true) {
+    const countUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(username)}/projects?limit=${countLimit}&offset=${total}`;
+    const response = await fetch(countUrl);
+    if (!response.ok) {
+      return total;
+    }
+
+    const pageProjects = await response.json();
+    if (!Array.isArray(pageProjects) || pageProjects.length === 0) {
+      return total;
+    }
+
+    total += pageProjects.length;
+    if (pageProjects.length < countLimit) {
+      return total;
+    }
+  }
 }
 
 async function getProjectAuthorUsername(projectId) {
@@ -113,21 +136,24 @@ async function handleApiRequest(request) {
   }
 
   try {
-    const page = Math.max(1, Number(body.page) || 1);
-    const offset = (page - 1) * PROJECT_LIMIT;
+    const requestedPage = Math.max(1, Math.floor(Number(body.page) || 1));
     const userUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}`;
-    const projectsUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`;
-
-    const [userRes, projectsRes] = await Promise.all([
-      fetch(userUrl),
-      fetch(projectsUrl),
-    ]);
+    const userRes = await fetch(userUrl);
 
     if (!userRes.ok) {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: jsonHeaders });
     }
 
     const userInfo = await userRes.json();
+    const countedProjectCount = await getTotalProjectCount(resolvedUsername);
+    const profileProjectCount = getProjectCount(userInfo);
+    const projectCount = countedProjectCount || profileProjectCount || 0;
+    const lastPage = Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT));
+    const currentPage = Math.min(requestedPage, lastPage);
+    const offset = (currentPage - 1) * PROJECT_LIMIT;
+    const projectsUrl = `https://api.scratch.mit.edu/users/${encodeURIComponent(resolvedUsername)}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`;
+    const projectsRes = await fetch(projectsUrl);
+
     let projects = [];
     if (projectsRes.ok) {
       projects = await projectsRes.json();
@@ -144,8 +170,8 @@ async function handleApiRequest(request) {
     return new Response(JSON.stringify({
       user_info: userInfo,
       projects,
-      project_count: getProjectCount(userInfo),
-      current_page: page,
+      project_count: projectCount,
+      current_page: currentPage,
       resolved_username: resolvedUsername,
     }), {
       status: 200,

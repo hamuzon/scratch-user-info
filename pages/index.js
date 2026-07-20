@@ -13,7 +13,7 @@ const toHref = (value) => {
   return `https://${value}`;
 };
 
-const PROJECT_LIMIT = 12;
+const PROJECT_LIMIT = 10;
 
 const formatJoinedDate = (joined) => {
   if (!joined) {
@@ -154,12 +154,7 @@ export default function Home() {
   const showPagination = totalPages ? totalPages > 1 : currentPage > 1 || hasMoreProjects;
   const canGoPrev = currentPage > 1;
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
-  const projectCountText =
-    projectCount !== null
-      ? `${projectCount}件`
-      : projects.length > 0
-      ? `${projects.length}${hasMoreProjects ? '以上' : ''}件`
-      : '0件';
+  const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
 
   const updateUrl = (targetUsername, pageNumber, method = 'push') => {
     if (!router.isReady || !targetUsername) {
@@ -845,6 +840,10 @@ export default function Home() {
               >
                 @{userInfo.username}
               </a>
+            </p>
+
+            <p className="info">
+              <strong>作品数:</strong> {projectCountText}
             </p>
 
             <div className="meta-row">
