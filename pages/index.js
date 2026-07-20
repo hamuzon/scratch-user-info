@@ -165,7 +165,7 @@ export default function Home() {
   const showPagination = totalPages ? totalPages > 1 : currentPage > 1 || hasMoreProjects;
   const canGoPrev = currentPage > 1;
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
-  const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
+  const projectCountText = projectCount !== null ? `${projectCount}件` : (loading ? '取得中' : '不明');
 
   const ensureBrowserUrl = (targetUsername, pageNumber, method = 'push') => {
     if (typeof window === 'undefined') {
