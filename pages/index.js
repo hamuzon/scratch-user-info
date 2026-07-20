@@ -416,7 +416,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
         <meta
           name="description"
-          content="Scratchユーザー情報と公開プロジェクトをすばやく確認できるツールです。ユーザー名・プロフィール・作品情報を表示します。"
+          content="Scratchユーザー情報と公開プロジェクトを確認できるツールです。ユーザー名・プロフィール・作品情報を表示します。"
         />
         <link rel="preconnect" href="https://scratch.mit.edu" crossOrigin="" />
         <link rel="preconnect" href="https://cdn2.scratch.mit.edu" crossOrigin="" />
