@@ -43,6 +43,10 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           NEXT_PUBLIC_API_BASE_URL: https://scratch-user-info.vercel.app
 
+      - name: Prepare GitHub Pages artifact
+        run: |
+          touch ./out/.nojekyll
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

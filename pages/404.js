@@ -1,12 +1,16 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Custom404() {
+  const router = useRouter();
+  const basePath = router.basePath || '';
+
   return (
     <>
       <Head>
         <title>404 - ページが見つかりません</title>
-        <link rel="icon" href="/icon.png" />
+        <link rel="icon" href={`${basePath}/icon.png`} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
       </Head>
 

@@ -151,6 +151,7 @@ const shouldShowAvatarBadge = (user) => Boolean(getAvatarBadgeStatus(user));
 
 export default function Home() {
   const router = useRouter();
+  const basePath = router.basePath || '';
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
@@ -428,7 +429,7 @@ export default function Home() {
     <>
       <Head>
         <title>Scratchユーザー情報表示</title>
-        <link rel="icon" href="/icon.png" />
+        <link rel="icon" href={`${basePath}/icon.png`} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
         <meta
           name="description"
