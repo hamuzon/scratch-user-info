@@ -200,27 +200,11 @@ export default function Home() {
   };
 
   const updateUrl = (targetUsername, pageNumber, method = 'push') => {
-    if (!router.isReady || !targetUsername) {
+    if (!targetUsername || typeof window === 'undefined') {
       return;
     }
 
-    const expectedPageParam = pageNumber > 1 ? String(pageNumber) : null;
-
-    router[method](
-      getUserInfoUrl(targetUsername, pageNumber),
-      undefined,
-      { shallow: true, scroll: false }
-    ).finally(() => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      const currentUrl = new URL(window.location.href);
-      const currentPageParam = currentUrl.searchParams.get('p');
-      if (currentUrl.searchParams.get('n') !== targetUsername || currentPageParam !== expectedPageParam) {
-        ensureBrowserUrl(targetUsername, pageNumber, method);
-      }
-    });
+    ensureBrowserUrl(targetUsername, pageNumber, method);
   };
 
   const loadUserInfo = async (pageNumber = 1, usernameOverride = null, options = {}) => {
@@ -349,8 +333,17 @@ export default function Home() {
     setCurrentPage(1);
     setError('');
     setLoading(false);
-    if (router.isReady) {
-      router.push(router.pathname, undefined, { shallow: true, scroll: false });
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('n');
+      url.searchParams.delete('p');
+      url.searchParams.delete('user');
+      url.searchParams.delete('name');
+      url.searchParams.delete('username');
+      url.searchParams.delete('u');
+      url.searchParams.delete('page');
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
     }
   };
 
