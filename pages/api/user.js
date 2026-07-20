@@ -1,7 +1,7 @@
 // pages/api/user.js
 
 const SCRATCH_API_BASE = 'https://api.scratch.mit.edu';
-const PROJECT_LIMIT = 12;
+const PROJECT_LIMIT = 10;
 
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -38,24 +38,22 @@ export default async function handler(req, res) {
     }
 
     const encodedUsername = encodeURIComponent(resolvedUsername);
-    const page = Math.max(1, Number(body.page) || 1);
-    const offset = (page - 1) * PROJECT_LIMIT;
+    const requestedPage = Math.max(1, Math.floor(Number(body.page)) || 1);
 
-    const [userRes, projectsRes] = await Promise.all([
-      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`),
-      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`),
-    ]);
+    const userRes = await fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`);
 
     if (!userRes.ok) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const [userInfo, rawProjects] = await Promise.all([
-      userRes.json(),
-      projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
-    ]);
-
+    const userInfo = await userRes.json();
     const projectCount = getProjectCount(userInfo);
+    const totalPages = getTotalPages(projectCount);
+    const page = totalPages !== null ? Math.min(requestedPage, totalPages) : requestedPage;
+    const offset = (page - 1) * PROJECT_LIMIT;
+
+    const projectsRes = await fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`);
+    const rawProjects = projectsRes.ok ? await projectsRes.json() : [];
     const projects = rawProjects.map((project) => ({
       id: project.id,
       title: project.title,
@@ -71,6 +69,8 @@ export default async function handler(req, res) {
       projects,
       project_count: projectCount,
       current_page: page,
+      requested_page: requestedPage,
+      total_pages: totalPages,
       resolved_username: resolvedUsername,
     });
   } catch (error) {
@@ -185,6 +185,14 @@ function getProjectCount(userInfo) {
     userInfo?.project_count ??
     null
   );
+}
+
+function getTotalPages(projectCount) {
+  if (typeof projectCount !== 'number' || Number.isNaN(projectCount)) {
+    return null;
+  }
+
+  return Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT));
 }
 
 function formatDatetime(datetimeString) {

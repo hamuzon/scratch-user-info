@@ -15,6 +15,16 @@ const toHref = (value) => {
 
 const PROJECT_LIMIT = 10;
 
+const normalizeApiBaseUrl = (value) => {
+  if (!value) {
+    return '';
+  }
+
+  return value.replace(/\/+$/, '');
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL || '');
+
 const formatJoinedDate = (joined) => {
   if (!joined) {
     return { short: '不明', detail: '不明' };
@@ -155,6 +165,11 @@ export default function Home() {
   const canGoPrev = currentPage > 1;
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
   const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
+  const shownStart = projects.length > 0 ? (currentPage - 1) * PROJECT_LIMIT + 1 : 0;
+  const shownEnd = projects.length > 0 ? shownStart + projects.length - 1 : 0;
+  const projectRangeText = projects.length > 0
+    ? `${shownStart}〜${shownEnd}件目${projectCount !== null ? ` / 全${projectCount}件` : ''}`
+    : projectCount !== null ? `全${projectCount}件` : '作品なし';
 
   const updateUrl = (targetUsername, pageNumber, method = 'push') => {
     if (!router.isReady || !targetUsername) {
@@ -185,7 +200,7 @@ export default function Home() {
     }
 
     try {
-      const apiPath = `${router.basePath || ''}/api/user`;
+      const apiPath = `${API_BASE_URL || router.basePath || ''}/api/user`;
       const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -287,7 +302,7 @@ export default function Home() {
     setProjects([]);
     setProjectCount(null);
     setCurrentPage(queryPage);
-    loadUserInfo(queryPage, queryUsername);
+    loadUserInfo(queryPage, queryUsername, { syncUrl: true, historyMethod: 'replace' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, router.query]);
 
@@ -905,7 +920,7 @@ export default function Home() {
             <>
               <div className="pagination-summary">
                 <span>
-                  <strong>作品数:</strong> {projectCountText}
+                  <strong>表示:</strong> {projectRangeText}
                 </span>
                 <span>
                   <strong>ページ:</strong> {currentPage}
@@ -1023,7 +1038,7 @@ export default function Home() {
             <>
               <div className="pagination-summary">
                 <span>
-                  <strong>作品数:</strong> {projectCountText}
+                  <strong>表示:</strong> {projectRangeText}
                 </span>
                 <span>
                   <strong>ページ:</strong> {currentPage}
