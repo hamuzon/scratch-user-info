@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAGES: "true"
+      NEXT_PUBLIC_GITHUB_PAGES: "true"
       BASE_PATH: /${{ github.event.repository.name }}
       NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
       NEXT_PUBLIC_API_BASE_URL: https://scratch-user-info.vercel.app
