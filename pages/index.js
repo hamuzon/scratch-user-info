@@ -167,15 +167,6 @@ export default function Home() {
   const canGoNext = totalPages !== null ? currentPage < totalPages : hasMoreProjects;
   const projectCountText = projectCount !== null ? `${projectCount}件` : '取得中';
 
-  const getUserInfoUrl = (targetUsername, pageNumber) => {
-    const query = { n: targetUsername };
-    if (pageNumber > 1) {
-      query.p = String(pageNumber);
-    }
-
-    return { pathname: router.pathname, query };
-  };
-
   const ensureBrowserUrl = (targetUsername, pageNumber, method = 'push') => {
     if (typeof window === 'undefined') {
       return;
@@ -301,12 +292,12 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!router.isReady) {
+    if (typeof window === 'undefined') {
       return;
     }
 
     const { username: queryUsername, page: queryPage } = getQueryParams(
-      Object.keys(router.query || {}).length > 0 ? router.query : null
+      Object.fromEntries(new URLSearchParams(window.location.search))
     );
     if (!queryUsername) {
       return;
@@ -322,8 +313,7 @@ export default function Home() {
     setProjectCount(null);
     setCurrentPage(queryPage);
     loadUserInfo(queryPage, queryUsername, { syncUrl: true, historyMethod: 'replace' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady, router.query]);
+  }, []);
 
   const reset = () => {
     setUsername('');

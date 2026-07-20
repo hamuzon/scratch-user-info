@@ -149,7 +149,7 @@ export default function Custom404() {
           アクセスしようとしたページは削除されたか、<br />
           URLが間違っている可能性があります。
         </p>
-        <Link href="/" className="home-button">
+        <Link href={basePath || '/'} className="home-button">
           ホームへ戻る
         </Link>
       </main>
