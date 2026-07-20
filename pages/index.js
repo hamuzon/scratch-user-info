@@ -13,6 +13,8 @@ const toHref = (value) => {
   return `https://${value}`;
 };
 
+const PROJECT_LIMIT = 12;
+
 const formatJoinedDate = (joined) => {
   if (!joined) {
     return { short: '不明', detail: '不明' };
@@ -144,13 +146,13 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [projectCount, setProjectCount] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const joinedDate = useMemo(() => formatJoinedDate(userInfo?.history?.joined), [userInfo?.history?.joined]);
+  const totalPages = projectCount ? Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT)) : null;
 
-  const fetchUserInfo = async (e) => {
-    e.preventDefault();
+  const loadUserInfo = async (pageNumber = 1) => {
     setError('');
-    setUserInfo(null);
-    setProjects([]);
     setLoading(true);
 
     if (!username) {
@@ -164,13 +166,15 @@ export default function Home() {
       const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ username, page: pageNumber }),
       });
       const data = await res.json();
 
       if (res.ok) {
         setUserInfo(data.user_info || null);
         setProjects(data.projects || []);
+        setProjectCount(data.project_count ?? null);
+        setCurrentPage(data.current_page || pageNumber);
       } else {
         setError(data.error || 'ユーザー情報の取得に失敗しました。');
       }
@@ -182,10 +186,21 @@ export default function Home() {
     }
   };
 
+  const fetchUserInfo = async (e) => {
+    e.preventDefault();
+    setUserInfo(null);
+    setProjects([]);
+    setProjectCount(null);
+    setCurrentPage(1);
+    await loadUserInfo(1);
+  };
+
   const reset = () => {
     setUsername('');
     setProjects([]);
     setUserInfo(null);
+    setProjectCount(null);
+    setCurrentPage(1);
     setError('');
     setLoading(false);
   };
@@ -578,6 +593,42 @@ export default function Home() {
           background: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
+        .pagination-summary {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-top: 18px;
+          padding: 14px 16px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(0, 255, 204, 0.16);
+          color: #e0f7fa;
+          font-size: 14px;
+        }
+
+        .pagination-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 15px;
+        }
+
+        .pagination-buttons button {
+          min-width: 100px;
+          padding: 10px 14px;
+          font-size: 14px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(0, 255, 204, 0.2);
+          border-radius: 8px;
+        }
+
+        .pagination-buttons button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
         @media (max-width: 900px), (pointer: coarse), (hover: none) {
           .container {
             backdrop-filter: none;
@@ -747,6 +798,52 @@ export default function Home() {
         )}
 
         <div style={{ marginTop: 25 }}>
+          {projectCount !== null && (
+            <div className="pagination-summary">
+              <span>
+                <strong>作品数:</strong> {projectCount}件
+              </span>
+              {projectCount > 0 && (
+                <span>
+                  <strong>ページ:</strong> {currentPage} / {totalPages}
+                </span>
+              )}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="pagination-buttons">
+              <button
+                type="button"
+                onClick={() => loadUserInfo(1)}
+                disabled={loading || currentPage <= 1}
+              >
+                最初のページ
+              </button>
+              <button
+                type="button"
+                onClick={() => loadUserInfo(currentPage - 1)}
+                disabled={loading || currentPage <= 1}
+              >
+                前のページ
+              </button>
+              <button
+                type="button"
+                onClick={() => loadUserInfo(currentPage + 1)}
+                disabled={loading || currentPage >= totalPages}
+              >
+                次のページ
+              </button>
+              <button
+                type="button"
+                onClick={() => loadUserInfo(totalPages)}
+                disabled={loading || currentPage >= totalPages}
+              >
+                最後のページ
+              </button>
+            </div>
+          )}
+
           {projects.length > 0 &&
             projects.map((project, index) => (
               <div key={project.id} className="project">
@@ -817,6 +914,52 @@ export default function Home() {
                 )}
               </div>
             ))}
+
+          {projectCount !== null && (
+            <div className="pagination-summary">
+              <span>
+                <strong>作品数:</strong> {projectCount}件
+              </span>
+              {projectCount > 0 && (
+                <span>
+                  <strong>ページ:</strong> {currentPage} / {totalPages}
+                </span>
+              )}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="pagination-buttons">
+              <button
+                type="button"
+                onClick={() => loadUserInfo(1)}
+                disabled={loading || currentPage <= 1}
+              >
+                最初のページ
+              </button>
+              <button
+                type="button"
+                onClick={() => loadUserInfo(currentPage - 1)}
+                disabled={loading || currentPage <= 1}
+              >
+                前のページ
+              </button>
+              <button
+                type="button"
+                onClick={() => loadUserInfo(currentPage + 1)}
+                disabled={loading || currentPage >= totalPages}
+              >
+                次のページ
+              </button>
+              <button
+                type="button"
+                onClick={() => loadUserInfo(totalPages)}
+                disabled={loading || currentPage >= totalPages}
+              >
+                最後のページ
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </>

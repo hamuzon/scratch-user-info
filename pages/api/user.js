@@ -25,9 +25,12 @@ export default async function handler(req, res) {
     }
 
     const encodedUsername = encodeURIComponent(resolvedUsername);
+    const page = Math.max(1, Number(body.page) || 1);
+    const offset = (page - 1) * PROJECT_LIMIT;
+
     const [userRes, projectsRes] = await Promise.all([
       fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}`),
-      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}`),
+      fetch(`${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${PROJECT_LIMIT}&offset=${offset}`),
     ]);
 
     if (!userRes.ok) {
@@ -39,6 +42,7 @@ export default async function handler(req, res) {
       projectsRes.ok ? projectsRes.json() : Promise.resolve([]),
     ]);
 
+    const projectCount = getProjectCount(userInfo);
     const projects = rawProjects.map((project) => ({
       id: project.id,
       title: project.title,
@@ -49,7 +53,13 @@ export default async function handler(req, res) {
     }));
 
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-    return res.status(200).json({ user_info: userInfo, projects, resolved_username: resolvedUsername });
+    return res.status(200).json({
+      user_info: userInfo,
+      projects,
+      project_count: projectCount,
+      current_page: page,
+      resolved_username: resolvedUsername,
+    });
   } catch (error) {
     console.error('API Handler Error:', error);
     return res.status(500).json({ error: 'Internal server error' });
@@ -148,6 +158,20 @@ async function getProjectAuthorUsername(projectId) {
 
   const project = await projectRes.json();
   return project?.author?.username || '';
+}
+
+function getProjectCount(userInfo) {
+  if (!userInfo) return null;
+
+  return (
+    userInfo?.profile?.stats?.project_count ??
+    userInfo?.profile?.stats?.projects ??
+    userInfo?.profile?.statistics?.project_count ??
+    userInfo?.profile?.statistics?.projects ??
+    userInfo?.stats?.project_count ??
+    userInfo?.project_count ??
+    null
+  );
 }
 
 function formatDatetime(datetimeString) {
