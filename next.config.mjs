@@ -15,7 +15,11 @@ const normalizeBasePath = (value) => {
 const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
 
 /** @type {import('next').NextConfig} */
+const isGitHubPagesBuild = process.env.GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_BASE_PATH;
+
 const nextConfig = {
+  output: isGitHubPagesBuild ? 'export' : undefined,
+  trailingSlash: isGitHubPagesBuild ? true : undefined,
   basePath: basePath,
   assetPrefix: basePath || undefined,
   poweredByHeader: false,
