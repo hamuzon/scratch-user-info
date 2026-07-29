@@ -17,9 +17,7 @@ URL-3
 <https://scratch.hamusata.f5.si/>
 
 URL-4
-
 <https://scratch.hamuzon-jp.f5.si/>
 
 URL-5
-
 <https://hamuzon.github.io/scratch-user-info/>
