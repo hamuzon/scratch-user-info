@@ -47,7 +47,13 @@ export default async function handler(req, res) {
     }
 
     const userInfo = await userRes.json();
-    const projectCount = getProjectCount(userInfo);
+    let projectCount = getProjectCount(userInfo);
+
+    // Scratch API が project_count を返さない場合はプロジェクト一覧を全ページ取得してカウント
+    if (projectCount === null) {
+      projectCount = await getTotalProjectCount(encodedUsername);
+    }
+
     const totalPages = getTotalPages(projectCount);
     let page = totalPages !== null ? Math.min(requestedPage, totalPages) : requestedPage;
     let rawProjects = await fetchProjectsPage(encodedUsername, page);
@@ -116,6 +122,24 @@ async function readRawBody(req) {
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
+}
+
+async function getTotalProjectCount(encodedUsername) {
+  const countLimit = 40;
+  let total = 0;
+
+  while (true) {
+    const res = await fetch(
+      `${SCRATCH_API_BASE}/users/${encodedUsername}/projects?limit=${countLimit}&offset=${total}`
+    );
+    if (!res.ok) return total;
+
+    const pageProjects = await res.json();
+    if (!Array.isArray(pageProjects) || pageProjects.length === 0) return total;
+
+    total += pageProjects.length;
+    if (pageProjects.length < countLimit) return total;
+  }
 }
 
 async function fetchProjectsPage(encodedUsername, page) {

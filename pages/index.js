@@ -1,7 +1,6 @@
 // pages/index.js
 import { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 
 const TEXT_LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?:\/[^\s]*)?)|@([A-Za-z0-9_-]+)/g;
 const TRAILING_PUNCTUATION_PATTERN = /[),.!?;:]+$/;
@@ -149,9 +148,10 @@ const getAvatarBadgeStatus = (user) => {
 
 const shouldShowAvatarBadge = (user) => Boolean(getAvatarBadgeStatus(user));
 
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+
 export default function Home() {
-  const router = useRouter();
-  const basePath = router.basePath || '';
+  const basePath = BASE_PATH;
   const [username, setUsername] = useState('');
   const [projects, setProjects] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
@@ -210,7 +210,7 @@ export default function Home() {
     }
 
     try {
-      const apiPath = `${API_BASE_URL || router.basePath || ''}/api/user`;
+      const apiPath = `${API_BASE_URL || BASE_PATH}/api/user`;
       const res = await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
