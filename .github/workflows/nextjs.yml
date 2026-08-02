@@ -45,6 +45,13 @@ jobs:
       - name: Build static site
         run: npm run build
 
+      - name: Add redirect script to HTML files
+        run: |
+          find ./out -name "*.html" -exec sed -i '/<head>/a \  <script>if(window.location.hostname.endsWith(".")){window.location.replace(window.location.href.replace(window.location.hostname,window.location.hostname.slice(0,-1)));}<\/script>' {} +
+      - name: Remove sensitive files from deployment artifact
+        run: |
+          rm -rf functions README.md README readme.md license LICENSE LICENSE.txt _redirects.md _redirects
+
       - name: Prepare GitHub Pages artifact
         run: |
           test -f ./out/index.html
