@@ -13,7 +13,7 @@ const normalizeBasePath = (value) => {
 };
 
 const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
-const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+const isGitHubPages = process.env.GITHUB_PAGES === 'true' && !process.env.VERCEL;
 
 const cacheHeaders = {
   async headers() {
@@ -25,6 +25,15 @@ const cacheHeaders = {
       {
         source: '/:path*.(ico|png|jpg|jpeg|webp|avif|svg|css|js|woff|woff2)',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'POST, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
+          { key: 'Access-Control-Max-Age', value: '86400' },
+        ],
       },
     ];
   },
