@@ -24,23 +24,71 @@ const normalizeApiBaseUrl = (value) => {
 
 const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL || '');
 
-const formatJoinedDate = (joined) => {
+const formatJoinedDate = (joined, country = '') => {
   if (!joined) {
-    return { short: '不明', detail: '不明' };
+    return {
+      jst: '不明',
+      utc: '不明',
+      local: '不明',
+      showLocal: false,
+    };
   }
 
   const date = new Date(joined);
+  if (isNaN(date.getTime())) {
+    return {
+      jst: '不明',
+      utc: '不明',
+      local: '不明',
+      showLocal: false,
+    };
+  }
+
+  const options = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  };
+
+  const jst = date.toLocaleString('ja-JP', { ...options, timeZone: 'Asia/Tokyo' });
+  const utc = date.toLocaleString('ja-JP', { ...options, timeZone: 'UTC' });
+  const local = date.toLocaleString('ja-JP', options);
+
+  let timeZoneLabel = '';
+  try {
+    timeZoneLabel = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  } catch {
+    timeZoneLabel = '';
+  }
+
+  const offset = date.getTimezoneOffset();
+  const tzLower = timeZoneLabel.toLowerCase();
+  const normalizedCountry = String(country || '').trim().toLowerCase();
+  const isCountryJapan =
+    normalizedCountry === 'japan' ||
+    normalizedCountry === 'jp' ||
+    normalizedCountry === '日本' ||
+    normalizedCountry.includes('japan');
+
+  const isBrowserJapanOrJst =
+    !timeZoneLabel ||
+    tzLower === 'asia/tokyo' ||
+    tzLower === 'japan' ||
+    tzLower.includes('tokyo') ||
+    tzLower === 'jst' ||
+    offset === -540 ||
+    jst === local;
+
+  const isJapan = isCountryJapan || isBrowserJapanOrJst;
+
   return {
-    short: date.toLocaleDateString('ja-JP'),
-    detail: date.toLocaleString('ja-JP', {
-      timeZone: 'Asia/Tokyo',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }),
+    jst,
+    utc,
+    local: timeZoneLabel ? `${local} (${timeZoneLabel})` : local,
+    showLocal: !isJapan,
   };
 };
 
@@ -159,7 +207,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [projectCount, setProjectCount] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const joinedDate = useMemo(() => formatJoinedDate(userInfo?.history?.joined), [userInfo?.history?.joined]);
+  const joinedDate = useMemo(
+    () => formatJoinedDate(userInfo?.history?.joined, userInfo?.profile?.country),
+    [userInfo?.history?.joined, userInfo?.profile?.country]
+  );
   const totalPages = projectCount !== null ? Math.max(1, Math.ceil(projectCount / PROJECT_LIMIT)) : null;
   const hasMoreProjects = projects.length === PROJECT_LIMIT;
   const showPagination = totalPages ? totalPages > 1 : currentPage > 1 || hasMoreProjects;
@@ -879,21 +930,21 @@ export default function Home() {
               <strong>作品数:</strong> {projectCountText}
             </p>
 
-            <div className="meta-row">
-              {userInfo.profile?.country && (
-                <p className="info">
-                  <strong>国:</strong> {userInfo.profile.country}
-                </p>
-              )}
+            {userInfo.profile?.country && (
               <p className="info">
-                <strong>登録日:</strong>{' '}
-                <time
-                  title={`${joinedDate.detail}（ホバー/タップで詳細）`}
-                  dateTime={userInfo.history?.joined || ''}
-                >
-                  {joinedDate.short}
-                </time>
+                <strong>国:</strong> {userInfo.profile.country}
               </p>
+            )}
+
+            <div className="info">
+              <strong>登録日:</strong>
+              <div style={{ paddingLeft: '14px', marginTop: '4px', fontSize: '13px', lineHeight: '1.7', color: '#e0e0e0' }}>
+                <div>・<strong>JST (日本時間):</strong> <time dateTime={userInfo.history?.joined || ''}>{joinedDate.jst}</time></div>
+                <div>・<strong>UTC (世界協定時):</strong> <time dateTime={userInfo.history?.joined || ''}>{joinedDate.utc}</time></div>
+                {joinedDate.showLocal && (
+                  <div>・<strong>現地時間:</strong> <time dateTime={userInfo.history?.joined || ''}>{joinedDate.local}</time></div>
+                )}
+              </div>
             </div>
 
             {userInfo.scratchteam && (

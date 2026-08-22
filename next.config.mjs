@@ -39,6 +39,8 @@ const cacheHeaders = {
   },
 };
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath: basePath,
@@ -49,7 +51,7 @@ const nextConfig = {
   },
   trailingSlash: isGitHubPages,
   poweredByHeader: false,
-  ...(isGitHubPages ? {} : cacheHeaders),
+  ...(isGitHubPages || isDev ? {} : cacheHeaders),
 };
 
 export default nextConfig;
