@@ -11,6 +11,7 @@ const jsonHeaders = {
   ...corsHeaders,
 };
 
+const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
 const PROJECT_LIMIT = 10;
 
 function formatDatetime(datetimeString) {
@@ -197,6 +198,40 @@ async function handleApiRequest(request) {
   }
 }
 
+async function proxyToNext(request) {
+  try {
+    const url = new URL(request.url);
+    const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
+    
+    // Create a new request with the original headers
+    const newHeaders = new Headers(request.headers);
+    // Explicitly set the Host header to the target origin's host
+    // This is required for Vercel to route the request correctly
+    newHeaders.set('Host', target.host);
+    
+    const response = await fetch(new Request(target.toString(), {
+      method: request.method,
+      headers: newHeaders,
+      body: request.body,
+      redirect: 'follow'
+    }));
+
+    // オリジンサーバーが5xx系エラーを返した場合、トップページにリダイレクトする
+    if (response.status >= 500 && response.status < 600) {
+      console.error(`Origin server returned a ${response.status} error for ${target.toString()}.`);
+      const requestUrl = new URL(request.url);
+      return Response.redirect(requestUrl.origin, 302);
+    }
+
+    return response;
+  } catch (e) {
+    console.error('Proxy error:', e);
+    // プロキシ処理中にエラーが発生した場合もトップページにリダイレクトする
+    const requestUrl = new URL(request.url);
+    return Response.redirect(requestUrl.origin, 302);
+  }
+}
+
 function normalizeDotHost(request) {
   const url = new URL(request.url);
   if (url.hostname.endsWith('.')) {
@@ -229,6 +264,10 @@ export default {
       return handleApiRequest(request);
     }
 
-    return new Response('Not Found', { status: 404 });
+    if (url.pathname.startsWith('/_next/data/')) {
+      return Response.redirect(new URL(url.origin).toString(), 302);
+    }
+
+    return proxyToNext(request);
   }
 };
