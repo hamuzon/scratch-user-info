@@ -11,8 +11,58 @@ const jsonHeaders = {
   ...corsHeaders,
 };
 
-const NEXT_ORIGIN = 'https://scratch-user-info.vercel.app';
 const PROJECT_LIMIT = 10;
+
+const HOME_HTML = `<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scratch User Info</title>
+  <style>
+    body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; font-family: sans-serif; line-height: 1.6; }
+    form { display: flex; gap: .5rem; }
+    input { flex: 1; padding: .6rem; }
+    button { padding: .6rem 1rem; cursor: pointer; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f4f4; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Scratch User Info</h1>
+  <form id="user-form">
+    <input id="username" name="username" placeholder="Scratchユーザー名または作品URL" required>
+    <button type="submit">検索</button>
+  </form>
+  <p id="status"></p>
+  <pre id="result" hidden></pre>
+  <script>
+    const form = document.getElementById('user-form');
+    const input = document.getElementById('username');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '取得中...';
+      result.hidden = true;
+      try {
+        const response = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: input.value })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || '取得に失敗しました');
+        status.textContent = data.resolved_username + ' の情報';
+        result.textContent = JSON.stringify(data, null, 2);
+        result.hidden = false;
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    });
+  </script>
+</body>
+</html>`;
 
 function formatDatetime(datetimeString) {
   try {
@@ -198,40 +248,6 @@ async function handleApiRequest(request) {
   }
 }
 
-async function proxyToNext(request) {
-  try {
-    const url = new URL(request.url);
-    const target = new URL(url.pathname + url.search, NEXT_ORIGIN);
-    
-    // Create a new request with the original headers
-    const newHeaders = new Headers(request.headers);
-    // Explicitly set the Host header to the target origin's host
-    // This is required for Vercel to route the request correctly
-    newHeaders.set('Host', target.host);
-    
-    const response = await fetch(new Request(target.toString(), {
-      method: request.method,
-      headers: newHeaders,
-      body: request.body,
-      redirect: 'follow'
-    }));
-
-    // オリジンサーバーが5xx系エラーを返した場合、トップページにリダイレクトする
-    if (response.status >= 500 && response.status < 600) {
-      console.error(`Origin server returned a ${response.status} error for ${target.toString()}.`);
-      const requestUrl = new URL(request.url);
-      return Response.redirect(requestUrl.origin, 302);
-    }
-
-    return response;
-  } catch (e) {
-    console.error('Proxy error:', e);
-    // プロキシ処理中にエラーが発生した場合もトップページにリダイレクトする
-    const requestUrl = new URL(request.url);
-    return Response.redirect(requestUrl.origin, 302);
-  }
-}
-
 function normalizeDotHost(request) {
   const url = new URL(request.url);
   if (url.hostname.endsWith('.')) {
@@ -264,10 +280,13 @@ export default {
       return handleApiRequest(request);
     }
 
-    if (url.pathname.startsWith('/_next/data/')) {
-      return Response.redirect(new URL(url.origin).toString(), 302);
+    if (url.pathname === '/') {
+      return new Response(HOME_HTML, {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=UTF-8' },
+      });
     }
 
-    return proxyToNext(request);
+    return new Response('Not Found', { status: 404 });
   }
 };
