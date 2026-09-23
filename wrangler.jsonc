@@ -1,23 +1,44 @@
 {
   "name": "scratch-user-info",
-  "compatibility_date": "2026-08-04",
+  "compatibility_date": "2026-09-23",
   "main": "src/worker.js",
+
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
+
     "logs": {
       "enabled": true,
       "head_sampling_rate": 1,
       "persist": true,
       "invocation_logs": true
     },
+
     "traces": {
       "enabled": true,
       "persist": true,
       "head_sampling_rate": 1
     }
   },
+
   "cache": {
     "enabled": true
+  },
+
+  "previews": {
+    "observability": {
+      "logs": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "invocation_logs": true,
+        "persist": true
+      },
+
+      "traces": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "persist": true
+      }
+    }
   }
 }
