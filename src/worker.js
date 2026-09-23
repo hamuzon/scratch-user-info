@@ -13,57 +13,6 @@ const jsonHeaders = {
 
 const PROJECT_LIMIT = 10;
 
-const HOME_HTML = `<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scratch User Info</title>
-  <style>
-    body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; font-family: sans-serif; line-height: 1.6; }
-    form { display: flex; gap: .5rem; }
-    input { flex: 1; padding: .6rem; }
-    button { padding: .6rem 1rem; cursor: pointer; }
-    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f4f4; padding: 1rem; }
-  </style>
-</head>
-<body>
-  <h1>Scratch User Info</h1>
-  <form id="user-form">
-    <input id="username" name="username" placeholder="Scratchユーザー名または作品URL" required>
-    <button type="submit">検索</button>
-  </form>
-  <p id="status"></p>
-  <pre id="result" hidden></pre>
-  <script>
-    const form = document.getElementById('user-form');
-    const input = document.getElementById('username');
-    const status = document.getElementById('status');
-    const result = document.getElementById('result');
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      status.textContent = '取得中...';
-      result.hidden = true;
-      try {
-        const response = await fetch('/api/user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: input.value })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || '取得に失敗しました');
-        status.textContent = data.resolved_username + ' の情報';
-        result.textContent = JSON.stringify(data, null, 2);
-        result.hidden = false;
-      } catch (error) {
-        status.textContent = error.message;
-      }
-    });
-  </script>
-</body>
-</html>`;
-
 function formatDatetime(datetimeString) {
   try {
     const date = new Date(datetimeString);
@@ -278,13 +227,6 @@ export default {
 
     if (url.pathname === '/api/user') {
       return handleApiRequest(request);
-    }
-
-    if (url.pathname === '/') {
-      return new Response(HOME_HTML, {
-        status: 200,
-        headers: { 'content-type': 'text/html; charset=UTF-8' },
-      });
     }
 
     return new Response('Not Found', { status: 404 });
