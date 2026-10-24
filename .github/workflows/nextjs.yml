@@ -22,6 +22,8 @@ jobs:
       NEXT_PUBLIC_GITHUB_PAGES: "true"
       NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
       NEXT_PUBLIC_API_BASE_URL: https://scratch-user-info.vercel.app
+      GA_MEASUREMENT_ID: G-F8HVYVW05H
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -45,9 +47,65 @@ jobs:
       - name: Build static site
         run: npm run build
 
+      - name: Add Google Analytics to HTML files
+        run: |
+          if [[ ! "$GA_MEASUREMENT_ID" =~ ^G-[A-Z0-9]+$ ]]; then
+            echo "Invalid Google Analytics measurement ID"
+            exit 1
+          fi
+
+          export GA_ID="$GA_MEASUREMENT_ID"
+
+          python3 <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          ga_id = os.environ["GA_ID"]
+          output = Path("./out")
+
+          if not output.is_dir():
+              raise SystemExit("Error: ./out directory does not exist.")
+
+          script = f"""
+          <!-- Google tag (gtag.js) -->
+          <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){{dataLayer.push(arguments);}}
+            gtag('js', new Date());
+            gtag('config', '{ga_id}');
+          </script>
+          """
+
+          count = 0
+
+          for path in output.rglob("*.html"):
+              html = path.read_text(encoding="utf-8")
+
+              # Prevent duplicate Google Analytics tags
+              if "googletagmanager.com/gtag/js" in html:
+                  print(f"Skipped (GA already exists): {path}")
+                  continue
+
+              # Insert Google Analytics after the opening head tag
+              match = re.search(r"<head(?:\s[^>]*)?>", html, re.IGNORECASE)
+
+              if not match:
+                  print(f"Skipped (no head): {path}")
+                  continue
+
+              html = html[:match.end()] + "\n" + script + html[match.end():]
+              path.write_text(html, encoding="utf-8")
+              count += 1
+
+          print(f"Google Analytics added to {count} HTML files.")
+          PY
+
       - name: Add redirect script to HTML files
         run: |
           find ./out -name "*.html" -exec sed -i 's/<head>/<head><script>if(window.location.hostname.endsWith(".")){window.location.replace(window.location.href.replace(window.location.hostname,window.location.hostname.slice(0,-1)));}<\/script>/' {} +
+
       - name: Remove sensitive files from deployment artifact
         run: |
           rm -rf functions README.md README readme.md license LICENSE LICENSE.txt _redirects.md _redirects
@@ -70,6 +128,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
