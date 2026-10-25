@@ -727,6 +727,59 @@ export default function Home() {
           line-height: 1.7;
         }
 
+        .user-summary {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: clamp(8px, 2vw, 12px);
+          width: 100%;
+          min-width: 0;
+          text-align: center;
+        }
+
+        .user-avatar {
+          width: clamp(48px, 16vw, 80px);
+          height: clamp(48px, 16vw, 80px);
+          aspect-ratio: 1;
+          flex: 0 0 auto;
+          border: 2px solid #00ffcc;
+          border-radius: 12px;
+          object-fit: cover;
+        }
+
+        .user-summary .info {
+          margin-top: 0;
+          min-width: 0;
+          max-width: 100%;
+          text-align: center;
+          overflow-wrap: anywhere;
+        }
+
+        .user-info-section {
+          min-width: 0;
+          text-align: center;
+        }
+
+        .user-info-title {
+          text-align: center;
+        }
+
+        .user-info-section > .info {
+          box-sizing: border-box;
+          width: 100%;
+          margin-right: auto;
+          margin-left: auto;
+          overflow-wrap: anywhere;
+        }
+
+        .joined-dates {
+          margin-top: 4px;
+          font-size: 13px;
+          line-height: 1.7;
+          color: #e0e0e0;
+          overflow-wrap: anywhere;
+        }
+
         .meta-row {
           display: flex;
           flex-wrap: wrap;
@@ -911,20 +964,31 @@ export default function Home() {
         )}
 
         {userInfo && (
-          <div style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
-            <h2 style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
+          <div className="user-info-section" style={{ marginTop: 25, borderBottom: '1px solid rgba(0,255,204,0.2)', paddingBottom: '15px' }}>
+            <h2 className="user-info-title" style={{ fontSize: '17px', color: '#00ffcc', marginBottom: '8px' }}>ユーザー情報</h2>
             
-            <p className="info">
-              <strong>ユーザー名:</strong>{' '}
-              <a
-                href={`https://scratch.mit.edu/users/${encodeURIComponent(userInfo.username)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="username-link"
-              >
-                @{userInfo.username}
-              </a>
-            </p>
+            <div className="user-summary">
+              {userInfo.profile?.images?.['90x90'] && (
+                <img
+                  src={userInfo.profile.images['90x90']}
+                  alt=""
+                  className="user-avatar"
+                  width="72"
+                  height="72"
+                />
+              )}
+              <p className="info">
+                <strong>ユーザー名:</strong>{' '}
+                <a
+                  href={`https://scratch.mit.edu/users/${encodeURIComponent(userInfo.username)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="username-link"
+                >
+                  @{userInfo.username}
+                </a>
+              </p>
+            </div>
 
             <p className="info">
               <strong>作品数:</strong> {projectCountText}
@@ -938,7 +1002,7 @@ export default function Home() {
 
             <div className="info">
               <strong>登録日:</strong>
-              <div style={{ paddingLeft: '14px', marginTop: '4px', fontSize: '13px', lineHeight: '1.7', color: '#e0e0e0' }}>
+              <div className="joined-dates">
                 <div>・<strong>JST (日本時間):</strong> <time dateTime={userInfo.history?.joined || ''}>{joinedDate.jst}</time></div>
                 <div>・<strong>UTC (世界協定時):</strong> <time dateTime={userInfo.history?.joined || ''}>{joinedDate.utc}</time></div>
                 {joinedDate.showLocal && (
